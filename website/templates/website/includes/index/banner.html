@@ -1,0 +1,12 @@
+<!-- homepage banner -->
+<div class="homepage-banner">
+    <div class="container container-240">
+        <div class="row">
+            {% for producto in productos_destacados %}
+                <div class="col-md-6 col-sm-6 col-xs-6">
+                    {% include 'productos/includes/productos/producto_item_grande.html' %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

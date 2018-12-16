@@ -1,0 +1,51 @@
+{% load staticfiles %}
+
+<!-- Slide -->
+<div class="ads-group v2 bd-slick">
+    <div class="container container-240">
+{#        <div class="pp"><a href="http://templatica.com" title="Css Templates"><img src="https://images-na.ssl-images-amazon.com/images/I/41Hh0kX%2BKKL.jpg" alt="css template" /></a></div>#}
+        <div class="row">
+            <div class="col-md-8 col-sm-8 col-xs-12">
+                <div class="e-slide js-slider-3items">
+                    {% for producto_descuento in productos_descuento %}
+                        <div class="e-slide-img">
+                            <img src = '{{ producto_descuento.foto_920_614.url }}' alt = '{{ usuario.user.username }}' class="img-responsive" style="opacity: 0.8">
+                            <div class="slide-content v2">
+{#                                    <h3>{{ producto_descuento.categoria }}</h3>#}
+{#                                    <h3 style='background-color: #1d1d1f'>{{ producto_descuento.nombre }}</h3>#}
+{#                                    <h3>{{ producto_descuento.nombre }}</h3>#}
+
+                                <h4 class="sale"><span class="red">{{ producto_descuento.ahorro }}%</span> descuento</h4>
+                                <a href="#" class="slide-btn e-pink-gradient">Shop now<i class="ion-ios-arrow-forward"></i></a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-12">
+                <div class="row">
+                    <div class="col-md-12 banner-img-item">
+                        <div class="banner-img banner-img2">
+                            <a href="#"><img src="{% static 'img/banner/h5_b2.jpg' %}" alt="" class="img-responsive"></a>
+                            <div class="h-banner-content v4">
+                                <p class="content-name">Playstation 4 game pro</p>
+                                <p class="content-price">From <span class="red">29.99</span></p>
+                                <a href="#" class="btn-banner">Shop now<i class="ion-ios-arrow-forward"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 banner-img-item">
+                        <div class="banner-img banner-img2 banner-img-item">
+                            <a href="#"><img src="{% static 'img/banner/h5_b1.jpg' %}" alt="" class="img-responsive"></a>
+                            <div class="h-banner-content v4">
+                                <p class="content-name">Smart phone mix 2</p>
+                                <p class="content-price">From <span class="red">99.99</span></p>
+                                <a href="#" class="btn-banner">Shop now<i class="ion-ios-arrow-forward"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

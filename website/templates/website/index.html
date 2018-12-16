@@ -1,0 +1,121 @@
+{% extends 'website/base.html' %}
+{% load staticfiles %}
+{% block content %}
+{#    {% include 'website/includes/index/slide.html' %}#}
+    {% include 'website/includes/index/bienvenida.html' %}
+{#    {% include 'website/includes/index/features.html' %}#}
+    {% include 'website/includes/index/resumen.html' %}
+{#    {% include 'website/includes/index/banner.html' %}#}
+    {% include 'website/includes/index/best_seller.html' %}
+    {% include 'website/includes/index/categorias.html' %}
+    {% include 'website/includes/index/marcas.html' %}
+    {% include 'website/includes/index/recientes.html' %}
+
+    <!-- Banner -->
+    <div class="container container-240">
+        <div class="banner-callus spc2 spc5 image-bd effect_img2">
+            <a href="#"><img src="{% static 'img/banner/h5_b5.jpg' %}" alt="" class="img-responsive"></a>
+            <div class="box-center">
+                <p>Free Shipping on Orders $50</p>
+                <a href="#" class="btn-callus">Shop now</a>
+            </div>
+        </div>
+    </div>
+    <div class="e-category">
+        <div class="container container-240">
+            <div class="row">
+                <div class="col-xs-12 col-sm-4 col-md-4">
+                    <h1 class="cate-title">Featured Products</h1>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/usb.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/macbook.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/flycam.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-md-4">
+                    <h1 class="cate-title">Top Rated Products</h1>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/samsung.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/headphone2.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/anker.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-4 col-md-4">
+                    <h1 class="cate-title">Top Selling Products</h1>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/headphone.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/samsung2.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                    <div class="cate-item">
+                        <div class="product-img">
+                            <a href="#"><img src="{% static 'img/product/sound.jpg' %}" alt="" class="img-reponsive"></a>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title"><a href="#">Epson Home Cinema 5040UB </a></h3>
+                            <div class="product-price v2"><span>$780.00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

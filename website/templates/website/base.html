@@ -1,0 +1,25 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="es-ES">
+    <head>
+        <title>VINTAGEAME | {% block tab-title %}{% endblock tab-title %}</title>
+        {% include 'website/includes/metadatos.html' %}
+        <meta name = "description" content = "{% block meta-description %}{% endblock meta-description %}">
+        <link rel = "image_src" href = "{% block meta-image_src %}{% endblock meta-image_src %}" />
+        <meta name = "keywords" content = "{% block meta-keywords %}{% endblock meta-keywords %}">
+        {% include 'website/includes/styles.html' %}
+        {% block custom_css %}{% endblock custom_css %}
+        <link rel = "stylesheet" href = "{% static 'css/my_styles.css' %}">
+    </head>
+    <body>
+        {% include 'website/includes/push_menu.html' %}
+        <div class="wrappage">
+            {% include 'website/includes/header.html' %}
+            {% block content %}{% endblock content %}
+            {% include 'website/includes/base_footer.html' %}
+        </div>
+        {% include 'website/includes/scripts.html' %}
+        {% block custom_js %}{% endblock custom_js %}
+    </body>
+</html>
