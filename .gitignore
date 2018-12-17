@@ -1,9 +1,7 @@
 *.pyc
 *.log
-*settings__dev.py
-*settings__prod.py
-*globals__dev.py
-*globals__prod.py
+*__dev.py
+*__prod.py
 */media/
 .idea/
 *maintenance_mode_state.txt

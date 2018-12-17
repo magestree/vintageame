@@ -28,5 +28,5 @@ def crop_from_center(image_path, width, height, save=False):
     # 4 - Devolver la imagen modificada
     return croped_img
 
-from support.globales__dev import *
-from support.globales__prod import *
+from support.globals__dev import *
+from support.globals__prod import *

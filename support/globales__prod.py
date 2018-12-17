@@ -1,1 +1,0 @@
-# Thois file is emptry in development enviroment

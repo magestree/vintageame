@@ -7,7 +7,7 @@ import urllib3, os, shutil
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core import files
 from io import BytesIO
-from support.globales import crop_from_center
+from support.globals import crop_from_center
 from django.conf import settings
 from django.template.defaultfilters import slugify
 
