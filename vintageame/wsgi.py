@@ -7,10 +7,5 @@ For more information on this file, see
 https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/
 """
 
-import os
-
-from django.core.wsgi import get_wsgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vintageame.settings')
-
-application = get_wsgi_application()
+from vintageame.wsgi__dev import *
+from vintageame.wsgi__prod import *
