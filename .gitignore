@@ -1,5 +1,6 @@
 *.pyc
 *.log
+*.pdf
 *__dev.py
 *__prod.py
 */media/
