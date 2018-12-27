@@ -19,6 +19,15 @@ def categoria(request, url_amigable):
 
     return render(request, 'productos/categoria.html', context)
 
+def categorias(request):
+    categorias = Categoria.objects.order_by('nombre')
+
+    context = {
+        'categorias': categorias,
+    }
+
+    return render(request, 'productos/categorias.html', context)
+
 def sub_categoria(request, url_amigable):
     sub_categoria = Sub_Categoria.objects.get(url_amigable = url_amigable)
 

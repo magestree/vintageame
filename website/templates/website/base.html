@@ -4,10 +4,10 @@
 <html lang="es-ES">
     <head>
         <title>VINTAGEAME | {% block tab-title %}{% endblock tab-title %}</title>
-        {% include 'website/includes/metadatos.html' %}
-        <meta name = "description" content = "{% block meta-description %}{% endblock meta-description %}">
-        <link rel = "image_src" href = "{% block meta-image_src %}{% endblock meta-image_src %}" />
-        <meta name = "keywords" content = "{% block meta-keywords %}{% endblock meta-keywords %}">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        {% block metadatos %}{% endblock metadatos %}
         {% include 'website/includes/styles.html' %}
         {% block custom_css %}{% endblock custom_css %}
         <link rel = "stylesheet" href = "{% static 'css/my_styles.css' %}">

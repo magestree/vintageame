@@ -1,6 +1,6 @@
 {% extends 'website/base.html' %}{% load staticfiles %}
 {% block tab-title %}
-    Productos Vintage
+    Categorías de Productos Vintage
 {% endblock tab-title %}
 {% block metadatos %}
     <meta name = "description" content = "">
@@ -8,9 +8,8 @@
     <link rel = "image_src" href = "" />
 {% endblock %}
 {% block content %}
-    {% include 'website/includes/index/bienvenida.html' %}
-    {% include 'website/includes/index/resumen.html' %}
-    {% include 'website/includes/index/categorias.html' %}
+    {% include 'productos/includes/categorias/bienvenida_categorias.html' %}
+    {% include 'productos/includes/categorias/todas_categorias.html' %}
     <br>
     <br>
 {% endblock content %}
