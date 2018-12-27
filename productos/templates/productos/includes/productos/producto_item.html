@@ -1,6 +1,6 @@
 {% load staticfiles %}
-
-<div class="product-item">
+{#<div class="product-item">#}
+<div style="padding: 10px;">
     <div class="pd-bd product-inner">
         <div class="product-img">
             <a href="{{ producto.url_afiliado }}" target="_blank"><img src='{{ producto.foto_320_320.url }}' alt='{{ producto.nombre }}' class='img-reponsive'></a>
@@ -8,21 +8,11 @@
                 <div class="ribbon-price red"><span>- {{ producto.ahorro_porciento | floatformat:0 }}% </span></div>
             {% endif %}
         </div>
-
         <div class="product-info">
             <div class="color-group">
             </div>
-{#            <div class="element-list element-list-left">#}
-{#                <ul class="desc-list">#}
-{#                    <li>Connects directly to Bluetooth</li>#}
-{#                    <li>Battery Indicator light</li>#}
-{#                    <li>DPI Selection:2600/2000/1600/1200/800</li>#}
-{#                    <li>Computers running Windows</li>#}
-{#                </ul>#}
-{#            </div>#}
             <div class="element-list element-list-middle">
                 <div class="product-rating bd-rating">
-
                     <span class="star {% if producto.evaluacion < 0.5 %}star-empty{% endif %}"></span>
                     <span class="star {% if producto.evaluacion < 1.5 %}star-empty{% endif %}"></span>
                     <span class="star {% if producto.evaluacion < 2.5 %}star-empty{% endif %}"></span>
@@ -44,31 +34,9 @@
                         {% endif %}
                     </div>
                     <a href="#" class="btn-icon btn-view">
-                            <span class="icon-bg icon-view"></span>
-                        </a>
+                        <span class="icon-bg icon-view"></span>
+                    </a>
                 </div>
-                <div class="product-bottom-group">
-                    <a href="#" class="btn-icon">
-                            <span class="icon-bg icon-cart"></span>
-                        </a>
-                    <a href="#" class="btn-icon">
-                            <span class="icon-bg icon-wishlist"></span>
-                        </a>
-                    <a href="#" class="btn-icon">
-                            <span class="icon-bg icon-compare"></span>
-                        </a>
-                </div>
-            </div>
-            <div class="product-button-group">
-                <a href="#" class="btn-icon">
-                        <span class="icon-bg icon-cart"></span>
-                    </a>
-                <a href="#" class="btn-icon">
-                        <span class="icon-bg icon-wishlist"></span>
-                    </a>
-                <a href="#" class="btn-icon">
-                        <span class="icon-bg icon-compare"></span>
-                    </a>
             </div>
         </div>
     </div>

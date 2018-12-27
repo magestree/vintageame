@@ -14,31 +14,19 @@
                         </a>
                     </li>
             {% endfor %}
-{#            <li>#}
-{#                <a class="flex align-center" href="">#}
-{#                    <div class="product-img">#}
-{#                        <img src="img/product/iphonex.jpg" alt="">#}
-{#                    </div>#}
-{#                    <h3 class="product-title">Notebook Black Spire Smartphone Black 2.0</h3>#}
-{#                </a>#}
-{#            </li>#}
         </ul>
         <div class="search-panel">
             <a class="dropdown-toggle" data-toggle="dropdown" href='#'>Categorías <span class="fa fa-caret-down"></span></a>
             <ul id="category" class="dropdown-menu dropdown-category">
-                {% for categoria in categorias %}
+                {% for categoria in categorias_menu %}
                     <li><a href="">{{ categoria.nombre }}</a></li>
                 {% endfor %}
+                <hr>
+                <li><a href="{% url 'productos:categorias' %}">Ver todas las categorías</a></li>
             </ul>
         </div>
         <span class="input-group-btn">
-                  <button class="button_search" type="button"><i class="ion-ios-search-strong"></i></button>
+            <button class="button_search" type="button"><i class="ion-ios-search-strong"></i></button>
         </span>
     </form>
-    <div class="tags">
-        <span>Más buscadas :</span>
-        {% for categoria_mas_buscada in categorias_mas_buscadas %}
-            <a href="#">{{ categoria_mas_buscada.nombre }}</a>
-        {% endfor %}
-    </div>
 </div>

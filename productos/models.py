@@ -140,6 +140,16 @@ class Producto(models.Model):
     foto_464_299 = models.ImageField('Foto 464 x 299', upload_to = productos_photos_464_299_directory, blank = True, null = True)
     foto_320_320 = models.ImageField('Foto 320 x 320', upload_to = productos_photos_320_320_directory, blank = True, null = True)
 
+    def verificar_producto(self):
+        # Las pruebas a las que se somete un producto son:
+        # 1 - Que tenga un nombre, una categoría y una sub_categoría
+        if self.nombre and self.categoria and self.sub_categoria:
+            # 2 - Que tenga todas las imágenes:
+            if self.foto_320_320 and self.foto_920_614 and self.foto_464_299:
+                return True
+        # Si alguna de las pruebas no se supera, el producto es eliminado
+        self.eliminar_producto()
+
     @classmethod
     def nuevo_producto(
         cls, nombre, precio_antes, precio_final, ahorro_euros, ahorro_porciento, categoria, sub_categoria, url_afiliado,
@@ -213,8 +223,35 @@ class Producto(models.Model):
             self.evaluacion = evaluacion
         self.save()
 
+    @classmethod
+    # Elimina todos los productos
+    def eliminar_productos(cls):
+        for producto in cls.objects.all():
+            producto.eliminar_producto()
+        # Luego de eliminar todos los productos, elimina todas las sub_categorías y todas las categorías
+        for sub_categoria in Sub_Categoria.objects.all():
+            sub_categoria.eliminar_sub_categoria()
+        for categoria in Categoria.objects.all():
+            categoria.eliminar_categoria()
+
     def eliminar_producto(self):
+        # Al eliminar un producto, debemos eliminar todas las imágenes relacionadas antes
+        if self.foto_464_299:
+            self.eliminar_foto_producto('464_299')
+        if self.foto_920_614:
+            self.eliminar_foto_producto('920_614')
+        if self.foto_320_320:
+            self.eliminar_foto_producto('320_320')
+        # Antes de eliminar un producto, comprobamos si es el último de su Subcategoría y Categoría. Si es el caso estas se eliminan también
+        categoria = self.categoria
+        sub_categoria = self.sub_categoria
+
         self.delete()
+
+        if sub_categoria.producto_set.count() == 0:
+            sub_categoria.eliminar_sub_categoria()
+        if categoria.producto_set.count() == 0:
+            categoria.eliminar_categoria()
 
     def eliminar_foto_producto(self, size):
         # Elimina el fichero de imagen de una foto del Producto
@@ -298,6 +335,10 @@ class Producto(models.Model):
 
             # Esperando para no estresar a Amazon
             wait = time.sleep(randint(9, 21))
+
+        # Al terminar de sincronizar todos los productos, se eliminan aquellos que no tengan toda la información de manera correcta
+        for producto in Producto.objects.all():
+            producto.verificar_producto()
 
     @classmethod
     def parser_precio(cls, text):
