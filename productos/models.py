@@ -499,4 +499,7 @@ class Producto(models.Model):
         verbose_name_plural = 'Productos'
 
     def __str__(self):
-        return self.nombre
+        if self.nombre:
+            return self.nombre
+        else:
+            return 'Producto sin nombre'
