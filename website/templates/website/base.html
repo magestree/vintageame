@@ -1,74 +1,32 @@
 <!DOCTYPE html>{% load staticfiles %}
-<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
-<!--[if (gte IE 9)|!(IE)]><!-->
-<html lang="en"> <!--<![endif]-->
+<html lang="en">
     <head>
-
-        <!-- Basic Page Needs
-        ================================================== -->
         <meta charset="utf-8">
         <title>Productos Vintage | {% block tab_title %}{% endblock tab_title %}</title>
         {% block meta %}{% endblock meta %}
-
-        <!-- Mobile Specific Metas
-        ================================================== -->
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-        <!-- CSS
-        ================================================== -->
         <link rel="stylesheet" href="{% static 'css/style.css' %}">
         <link rel="stylesheet" href="{% static 'css/colors/green.css' %}" id = "colors">
         <link rel="stylesheet" href="{% static 'extra/css/my_styles.css' %}" id = "colors">
         {% block custom_css %}{% endblock custom_css %}
-
     </head>
-
     <body class="boxed">
         <div id="wrapper">
-
-{#            {% include 'website/includes/top_bar.html' %}#}
-
             <div class="clearfix"></div>
-
-            <!-- Header
-            ================================================== -->
             <div class="container">
                 <div class="four columns">
                     {% include 'website/includes/logo.html' %}
                 </div>
-
-{#                {% include 'website/includes/aditional_menu.html' %}#}
-
-                <!-- Shopping Cart -->
                 <div class="twelve columns" id = 'aditional_menu'>
-
-{#                    {% include 'website/includes/cart.html' %}#}
-
                     {% include 'website/includes/search.html' %}
-
                 </div>
-
             </div>
-
-{#            {% include 'website/includes/navigation.html' %}#}
-            {% block content %}
-
-            {% endblock content %}
-
+            {% block content %}{% endblock content %}
             <div class="margin-top-15"></div>
-
-{#            {% include 'website/includes/footer.html' %}#}
-
-{#            {% include 'website/includes/footer_bottom.html' %}#}
-
-            <!-- Back To Top Button -->
+{#             include 'website/includes/footer.html' #}
+{#             include 'website/includes/footer_bottom.html' #}
             <div id="backtotop"><a href="#"></a></div>
-
         </div>
-
-        <!-- Java Script
-        ================================================== -->
-        <script src = 'https://code.jquery.com/jquery-1.11.0.min.js'></script>
         <script src = 'https://code.jquery.com/jquery-migrate-1.2.1.min.js'></script>
         <script src = "{% static 'scripts/jquery.jpanelmenu.js' %}"></script>
         <script src = "{% static 'scripts/jquery.themepunch.plugins.min.js' %}"></script>
