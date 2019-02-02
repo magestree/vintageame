@@ -430,8 +430,10 @@ class Producto(models.Model):
             # Se realizan hasta 20 intentos de recuperación de información por producto,
             # por si Amazon detecta una y otra vez un acceso automatizado
             for attempt in range(20):
+                print('Iniciando intento %s de obtención de datos...' %attempt)
                 # Se realiza una petición GET a la url del producto en Amazon
                 response = requests.get(url_producto, headers = headers, verify = False)
+                print('Petición requests realizada...')
                 # Si el código recibido es 200, la conexión ha sido exitosa y se procede con el parseo de información
                 if response.status_code == 200:
                     print('Hemos recibido un código 200 de parte de Amazon, procedemos a intentar obtener la información del producto')
@@ -518,6 +520,9 @@ class Producto(models.Model):
                 elif response.status_code == 404:
                     print('Amazon ha respondido un código 404, abandonamos el  producto')
                     break
+
+                else:
+                    print('Hemos obtenido un código %s por parte de Amazon, es imposible procesar la petición' %response.status_code)
 
         except Exception as e:
         # else:
