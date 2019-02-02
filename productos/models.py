@@ -203,7 +203,8 @@ class Producto(models.Model):
             print('Sincronizando %s' %url_producto)
             cls.sincronizar_producto_from_url(url_producto)
 
-            wait = randint(16, 32)
+            # wait = randint(19, 20)
+            wait = 19
 
             # Esperando para no estresar a Amazon
             print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
@@ -433,6 +434,7 @@ class Producto(models.Model):
                 response = requests.get(url_producto, headers = headers, verify = False)
                 # Si el código recibido es 200, la conexión ha sido exitosa y se procede con el parseo de información
                 if response.status_code == 200:
+                    print('Hemos recibido un código 200 de parte de Amazon, procedemos a intentar obtener la información del producto')
                     try:
                         # Se obtiene el código HTML de la respuesta del servidor de Amazon
                         html = response.text
@@ -440,8 +442,8 @@ class Producto(models.Model):
                         # Una vez tenemos el código HTML, se comprueba si contiene la información deseada, o Amazon ha
                         # detectado nuestro acceso automatizado
                         if 'For automated access to price change or offer listing change events' in html:
-                            print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en unos segundos...')
-                            time.sleep(15)
+                            print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en 18 segundos...')
+                            time.sleep(18)
                             continue
 
                         # Si hemos superado la prueba anterior y Amazon nos ha devuelto información útil sobre el proyecto,
