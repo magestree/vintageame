@@ -76,3 +76,23 @@ a, .happy-clients-author, #categories li li a.active span, #categories li li a.a
 .item-description span {
     color: #C59659;
 }
+
+#footer h3.footer {
+    color: #fff;
+    background: #C59659;
+    text-transform: uppercase;
+}
+
+#footer {
+    background: #C59659;
+    color: #ffffff;
+}
+
+#footer-bottom {
+    background: #0A2D42;
+    color: #ffffff;
+}
+
+input.newsletter {
+    background-color: #F5F5F5;
+}
