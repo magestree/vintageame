@@ -1,14 +1,3 @@
-/**
- * stacktable.js
- * Author & copyright (c) 2012: John Polacek
- * Dual MIT & GPL license
- *
- * Page: http://johnpolacek.github.com/stacktable.js
- * Repo: https://github.com/johnpolacek/stacktable.js/
- *
- * jQuery plugin for stacking tables on small screens
- *
- */
 ;(function($) {
 
   $.fn.stacktable = function(options) {
