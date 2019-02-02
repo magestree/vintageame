@@ -1,10 +1,3 @@
-/**
-  *
-  * jPanelMenu 1.3.0 (http://jpanelmenu.com)
-  * By Anthony Colangelo (http://acolangelo.com)
-  *
-* */
-
 (function($){
   $.jPanelMenu = function(options) {
     if ( typeof(options) == "undefined" || options == null ) { options = {}; };
