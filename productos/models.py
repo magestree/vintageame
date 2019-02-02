@@ -358,6 +358,8 @@ class Producto(models.Model):
             if not os.listdir(producto_foto_path):
                 shutil.rmtree(producto_foto_path)
                 print('Eliminado el archivo de la foto del producto en %s' %producto_foto_path)
+            else:
+                print('Tenemos elementos dentro de %s' %producto_foto_path)
         else:
             print('No podemos eliminar el archivo de la foto porque no existe la ruta: %s' %producto_foto_path)
 
@@ -498,7 +500,11 @@ class Producto(models.Model):
                             opiniones = opiniones,
                             evaluacion = evaluacion,
                         )
-                        
+                        if n_producto:
+                            print('Se ha creado correctamente el nuevo Producto: %s' %n_producto)
+                        else:
+                            print('No se ha podido crear el nuevo Producto')
+
                         # Si logramos crear el producto, salimos del for de intentos
                         break
 
