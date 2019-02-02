@@ -1,16 +1,59 @@
 {% extends 'website/base.html' %}{% load staticfiles %}
-{% block tab-title %}
-    Productos Vintage
-{% endblock tab-title %}
-{% block metadatos %}
-    <meta name = "description" content = "">
-    <meta name = "keywords" content = "">
-    <link rel = "image_src" href = "" />
-{% endblock %}
+{% block tab_title %}Inicio{% endblock tab_title %}
+{% block meta %}
+
+{% endblock meta %}
+
 {% block content %}
-    {% include 'website/includes/index/bienvenida.html' %}
-    {% include 'website/includes/index/resumen.html' %}
-    {% include 'website/includes/index/categorias.html' %}
-    <br>
-    <br>
+    {% include 'website/includes/title_bar.html' with page_title='Productos Vintage' %}<br>
+    <!-- Container -->
+    <div class="container">
+        {% include 'website/includes/page_description_header.html' with text='Bienvenido a la Tienda Online Definitiva de Productos Vintage. Si has llegado aquí no es por casualidad, es porque eres uno de los nuestros. Como nosotros sabes valorar lo que no pasa de moda y lo que te destaca por sobre la mayoría es sin dudas, el buen gusto y lo clásico.' %}
+        <br>
+        <!-- Portfolio Wrapper-->
+        <div id="portfolio-wrapper">
+            {% for categoria in categorias %}
+                <!-- Portfolio Item -->
+                <div class="one-third column portfolio-item">
+                    <figure>
+                        <div class="portfolio-holder">
+                            <a href="{% url 'productos:categoria' categoria.url_amigable %}">
+                                <img alt="Productos vintage de {{ categoria.nombre }}" src="{{ categoria.producto_set.all.first.foto_320_320.url }}"/>
+                                <div class="hover-cover"></div>
+                                <div class="hover-icon"></div>
+                            </a>
+                        </div>
+                        <a href="single-project-half.html">
+                            <section class="item-description">
+                                <span>{{ categoria.nombre }}</span>
+{#                                <h5>{{ categoria.producto_set.all.first.url_imagen_principal }}</h5>#}
+                            </section>
+                        </a>
+                    </figure>
+                </div>
+            {% endfor %}
+        </div>
+
+        <br>
+
+        <h3 class = 'font-vintage justify'>
+            En nuestra tienda online de productos vintage, nos esforzamos por mantener actualizado a diario un stock ordenado de los productos que más pueden interesarte. Los clasificamos por categorías y dentro de cada
+            una, estos pueden ser ordenados según varios criterios: descuentos, más vendidos, mejor valorados, o simplemente puedes verlos todos para que elijas los que más te gusten y necesites.
+        </h3>
+
+        <h3 class = 'font-vintage justify'>
+            Nuestra tienda online trabaja en colaboración con Amazon Markets, de modo que todos los productos que ofrecemos pertenecen a proveedores debidamente validados en el mercado. Además, puedes ver las evaluaciones
+            y el promedio de puntuación que estos proveedores han recibido de otros clientes amantes del vintage como tú. Si quieres ganar tiempo, ahorrar con fantásticos descuentos, y adquirir todo aquello vintage que amas,
+            no lo dudes... estás en el lugar correcto.
+        </h3>
+
+        <br>
+
+        <!-- Portfolio Wrapper / End -->
+    </div>
+    <!-- Container / End -->
 {% endblock content %}
+
+{% block custom_js %}
+    <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>
+{% endblock custom_js %}

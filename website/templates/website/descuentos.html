@@ -1,0 +1,35 @@
+{% extends 'website/base.html' %}
+{% load staticfiles %}
+{% block tab_title %}Inicio{% endblock tab_title %}
+{% block meta %}{% endblock meta %}
+
+{% block content %}
+    {% include 'website/includes/title_bar.html' with page_title='Productos con descuento' %}
+    <br>
+
+    <div class="container">
+        <div class="sixteen columns">
+            <h3 class = 'margin-bottom-20'>{{ index.page_description }}</h3>
+        </div>
+        <div class="four columns">
+            {% include 'website/includes/sidebar/categories.html' %}
+            {% include 'website/includes/sidebar/price_filter.html' %}
+        </div>
+        <div class="twelve columns">
+            {% include 'productos/includes/ordenar_productos.html' %}
+        </div>
+
+        <!-- Products -->
+        <div class="twelve columns products">
+            {% for producto in productos %}
+                {% include 'productos/producto.html' %}
+            {% endfor %}
+            <div class="clearfix"></div>
+            {% include 'productos/includes/paginar_productos.html' %}
+        </div>
+    </div>
+{% endblock content %}
+
+{% block custom_js %}
+    <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>
+{% endblock custom_js %}

@@ -1,0 +1,41 @@
+<!-- Shopping Cart -->{%  load staticfiles %}
+<div id="cart">
+
+    <!-- Button -->
+    <div class="cart-btn">
+        <a href="#" class="button adc">$178.00</a>
+    </div>
+
+    <div class="cart-list">
+
+    <div class="arrow"></div>
+
+        <div class="cart-amount">
+            <span>2 items in the shopping cart</span>
+        </div>
+
+            <ul>
+                <li>
+                    <a href="#"><img src="{% static 'images/small_product_list_08.jpg' %}" alt="" /></a>
+                    <a href="#">Converse All Star Trainers</a>
+                    <span>1 x $79.00</span>
+                    <div class="clearfix"></div>
+                </li>
+
+                <li>
+                    <a href="#"><img src="{% static 'images/small_product_list_09.jpg' %}" alt="" /></a>
+                    <a href="#">Tommy Hilfiger <br /> Shirt Beat</a>
+                    <span>1 x $99.00</span>
+                    <div class="clearfix"></div>
+                </li>
+            </ul>
+
+        <div class="cart-buttons button">
+            <a href="shopping-cart.html" class="view-cart" ><span data-hover="View Cart"><span>View Cart</span></span></a>
+            <a href="checkout-billing-details.html" class="checkout"><span data-hover="Checkout">Checkout</span></a>
+        </div>
+        <div class="clearfix">
+
+        </div>
+    </div>
+</div>
