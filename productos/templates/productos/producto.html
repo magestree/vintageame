@@ -1,0 +1,32 @@
+{% load staticfiles %}
+<div class="four shop columns">
+    <figure class="product">
+        {% if producto.descuento %}
+            <div class="product-discount">- {{ producto.ahorro_porciento }}%</div>
+        {% endif %}
+        <div class="mediaholder">
+            <a href="{{ producto.url_afiliado }}" target="_blank">
+                <img alt="{{ producto.nombre }}" src="{{ producto.foto_320_320.url }}"/>
+                <div class="cover">
+                    <img alt="{{ producto.nombre }}" src="{{ producto.foto_320_320.url }}"/>
+                </div>
+            </a>
+            <a href="{{ producto.url_afiliado }}" target="_blank" class="product-button"><i class="fa fa-eye"></i> Detalles</a>
+        </div>
+
+        <a href="{{ producto.url_afiliado }}" target="_blank">
+            <section style="height: 145px; padding: 7px">
+                <p class = 'justify'>{{ producto.nombre_corto }}</p>
+                {% if producto.ahorro_porciento %}
+                    <span class="product-price-discount" style="vertical-align: bottom; margin-bottom: 5px">€{{ producto.precio_antes }}<i>€{{ producto.precio_final }}</i></span>
+                {% else %}
+                    <span class="product-price">€{{ producto.precio_final }}</span>
+                {% endif %}
+                {{ producto.evaluacion }} de 5
+                {% for star_class in producto.star_classes %}
+                    <i class = 'fa {{ star_class }}'></i>
+                {% endfor %} ({{ producto.opiniones }} opiniones)
+            </section>
+        </a>
+    </figure>
+</div>

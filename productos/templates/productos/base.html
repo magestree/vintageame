@@ -1,0 +1,29 @@
+{% extends 'website/base.html' %}
+{% load staticfiles %}
+{% block tab_title %}{% endblock tab_title %}
+{% block meta %}
+    <meta name="description" content = "Productos vintage de {{ categoria.nombre }}.">
+    <meta name="keywords" content = "{{ categoria }} vintage, productos vintage {{ categoria.nombre }}, vintage {{ categoria.nombre }}">
+{% endblock meta %}
+
+{% block content %}
+    {% block page_title %}{% endblock page_title %}
+    <br>
+    <div class="container">
+        <div class="sixteen columns">
+            {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}
+            <br>
+        </div>
+        <div class="four columns">
+            {% include 'website/includes/sidebar/categories.html' %}
+            {% include 'website/includes/sidebar/price_filter.html' %}
+        </div>
+        {% block productos %}{% endblock productos %}
+    </div>
+{% endblock content %}
+
+{% block custom_js %}
+    <script src="{% static 'extra/scripts/categoria.js' %}"></script>
+    <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>
+{% endblock custom_js %}
+

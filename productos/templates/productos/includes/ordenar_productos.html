@@ -1,0 +1,11 @@
+<!-- Ordering -->
+<form id = 'form_order_by' method = "POST">{% csrf_token %}
+    <input type = 'hidden' name = 'precio_maximo' value = '' id = 'precio_maximo_order_by'>
+    <input type = 'hidden' name = 'precio_minimo' value = '' id = 'precio_minimo_order_by'>
+    <input type = 'hidden' name = 'order_by' value = 'True'>
+    <select class="orderby" id = 'select_order_by' name = 'order_by'>
+        <option value = 'precio_final' {% if order_by == 'precio_final' %}selected{% endif %}>Precio (Más barato)</option>
+        <option value = '-precio_final' {% if order_by == '-precio_final' %}selected{% endif %}>Precio (Más caro)</option>
+        <option value = '-ahorro_porciento' {% if order_by == '-ahorro_porciento' %}selected{% endif %}>Rebajas</option>
+    </select>
+</form>

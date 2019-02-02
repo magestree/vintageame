@@ -1,13 +1,14 @@
 from django.db import models
-from support import urls_productos
+from support.urls_productos import urls_productos
+from support.descripciones_categorias import categorias
 import requests, time
-from decimal import Decimal
 from random import randint
-import urllib3, os, shutil
+import urllib3, os, shutil, math
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core import files
 from io import BytesIO
 from support.globals import crop_from_center
+from support import methods
 from django.conf import settings
 from django.template.defaultfilters import slugify
 
@@ -40,20 +41,60 @@ def productos_photos_320_320_directory(instance, filename):
     )
 
 class Categoria(models.Model):
-    nombre = models.TextField('Categoría', blank = False, null = False, max_length = 4096)
+    nombre = models.TextField('Nombre', blank = False, null = False, max_length = 4096)
+    nombre_corto = models.CharField('Nombre cort', max_length = 40 ,blank = True, null = True)
     url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
     descripcion = models.TextField('Descripción', blank = True, null = True, max_length = 4096)
+
+    def actualizar_descripcion_categoria(self):
+        for categoria in categorias:
+            if categoria.get('nombre').lower() == self.nombre.lower():
+                self.descripcion = categoria.get('descripcion')
+                self.save()
+                print('Se ha actualizado correctamente la descripción de la categoría: %s' %self.nombre)
+                # Una vez hemos encontrado una categoría y actualizado su descripción salimos de la búsqueda
+                break
+
+    @classmethod
+    def actualizar_descripciones_categorias(cls):
+        for categoria in cls.objects.all():
+            categoria.actualizar_descripcion_categoria()
+
+    @classmethod
+    def get_categoria_from_name(cls, categoria_name):
+        categoria = cls.objects.filter(nombre = categoria_name)
+        if not categoria:
+            print('No existe ninguna categoría con nombre %s, así que la creamos' % categoria_name)
+            categoria = Categoria.nueva_categoria(
+                nombre = categoria_name,
+                descripcion = None,
+            )
+            # Se actualiza la descripción de la categoría
+            for c in categorias:
+                if c.get('nombre').lower() == categoria.nombre.lower():
+                    categoria.descripcion = c.get('descripcion')
+                    categoria.save()
+                    print('Se ha actualizado correctamente la descripción de la categoría: %s' % categoria.nombre)
+                    # Una vez hemos encontrado una categoría y actualizado su descripción salimos de la búsqueda
+                    break
+            print('Creada la nueva categoría: %s' % categoria)
+        else:
+            categoria = categoria.first()
+            print('Ya existe al menos una categoría con nombre %s, así que tomamos la existente (%s)' %(categoria_name, categoria.first()))
+        return categoria
 
     @classmethod
     def nueva_categoria(cls, nombre, descripcion):
         if not cls.objects.filter(nombre = nombre):
             n_categoria = cls.objects.create(
                 nombre = nombre,
+                nombre_corto = nombre[:39] + '...',
                 url_amigable = slugify(nombre),
                 descripcion = descripcion,
             )
             return n_categoria
         else:
+            print('Ya existe una categoría con nombre %s así que no podemos crearla' %nombre)
             return None
 
     def modificar_categoria(self, nombre, descripcion):
@@ -69,7 +110,17 @@ class Categoria(models.Model):
             return None
 
     def eliminar_categoria(self):
+        # Antes de eliminar una categoría, se eliminan todos los productos relacionados con esta
+        for producto in self.producto_set.all():
+            producto.eliminar_producto()
+        print('Eliminando categoría %s' %self.nombre)
         self.delete()
+
+    @classmethod
+    def eliminar_categorias(cls):
+        for categoria in cls.objects.all():
+            categoria.eliminar_categoria()
+        Producto.eliminar_productos()
 
     class Meta():
         verbose_name_plural = 'Categorías'
@@ -77,57 +128,63 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
-class Sub_Categoria(models.Model):
-    nombre = models.TextField('Sub Categoría', blank = False, null = False, max_length = 4096)
-    url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
-    descripcion = models.TextField('Descripción', blank = True, null = True, max_length = 4096)
-    categoria = models.ForeignKey(Categoria, blank = True, null = True, unique = False, on_delete = models.CASCADE)
+class Producto_Manager(models.Manager):
+    def get_detalles_productos(self, proyecto, precio_minimo, precio_maximo):
+        productos_todos = []
+        productos_descuento = []
+        productos_mejor_valorados = []
+        productos = proyecto.producto_set.order_by('-ahorro_porciento')
 
-    @classmethod
-    def nueva_sub_categoria(cls, nombre, descripcion, categoria):
-        if not cls.objects.filter(nombre = nombre, categoria = categoria):
-            n_sub_categoria = cls.objects.create(
-                nombre = nombre,
-                url_amigable = slugify(nombre),
-                descripcion = descripcion,
-                categoria = categoria,
-            )
-            return n_sub_categoria
+        # Criterios de filtrado
+        if precio_minimo:
+            productos = productos.filter(precio_final__gte = precio_minimo)
+        if precio_maximo:
+            productos = productos.filter(precio_final__lte = precio_maximo)
+
+        for producto in productos:
+            detalles_producto = self.get_detalles_producto(producto)
+            productos_todos.append(detalles_producto)
+            if detalles_producto.descuento:
+                productos_descuento.append(detalles_producto)
+            if detalles_producto.evaluacion:
+                if detalles_producto.evaluacion >= 3:
+                    productos_mejor_valorados.append(detalles_producto)
+
+        # Se ordenan los productos en productos_mejor_valorados, atendiendo a la evaluación
+        if productos_mejor_valorados:
+            productos_mejor_valorados.sort(key = lambda x: (x.evaluacion, x.opiniones), reverse = True)
+
+        return {
+            'productos_todos': productos_todos,
+            'productos_descuento': productos_descuento,
+            'productos_mejor_valorados': productos_mejor_valorados,
+        }
+
+    def get_detalles_producto(self, producto):
+        # 1 - Descuento
+        if producto.ahorro_porciento:
+            if producto.ahorro_porciento > 0:
+                producto.descuento = True
+            else:
+                producto.descuento = False
         else:
-            return None
+            producto.descuento = False
 
-    def modificar_sub_categoria(self, nombre, descripcion, categoria):
-        if not Sub_Categoria.objects.filter(nombre = nombre, categoria = categoria):
-            if self.nombre != nombre:
-                self.nombre = nombre
-                self.url_amigable = slugify(nombre)
-            if self.descripcion != descripcion:
-                self.descripcion = descripcion
-            if self.categoria != categoria:
-                self.categoria = categoria
-            self.save()
-            return self
-        else:
-            return None
+        # 2 - Estrellas de evaluación
+        producto.star_classes = producto.get_star_classes()
 
-    def eliminar_sub_categoria(self):
-        self.delete()
-
-    class Meta():
-        verbose_name_plural = 'Sub Categorías'
-
-    def __str__(self):
-        return '%s (%s)' %(self.nombre, self.categoria)
+        # 3 - Devolver el producto con la información adicional añadida
+        return producto
 
 class Producto(models.Model):
     nombre = models.TextField('Nombre', max_length = 4096, blank = True, null = True)
+    nombre_corto = models.CharField('Nombre cort', max_length = 128, blank = True, null = True)
     url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
     precio_antes = models.DecimalField('Precio Antes', max_digits = 8, decimal_places = 2, blank = True, null = True, unique = False)
     precio_final = models.DecimalField('Precio Final', max_digits = 8, decimal_places = 2, blank = True, null = True, unique = False)
     ahorro_euros = models.DecimalField('Ahorro Euros', max_digits = 8, decimal_places = 2, blank = True, null = True, unique = False)
     ahorro_porciento = models.DecimalField('Ahorro en %', max_digits = 8, decimal_places = 2, blank = True, null = True, unique = False)
     categoria = models.ForeignKey(Categoria, blank = True, null = True, unique = False, on_delete = models.CASCADE)
-    sub_categoria = models.ForeignKey(Sub_Categoria, blank = True, null = True, unique = False, on_delete = models.CASCADE)
     url_afiliado = models.TextField('URL Amazon', max_length = 4096, blank = True, null = True)
     url_imagen_principal = models.TextField('URL Imagen principal', max_length = 4096, blank = True, null = True)
     asin = models.CharField('ASIN', max_length = 16, blank = True, null = True, unique = True)
@@ -140,31 +197,79 @@ class Producto(models.Model):
     foto_464_299 = models.ImageField('Foto 464 x 299', upload_to = productos_photos_464_299_directory, blank = True, null = True)
     foto_320_320 = models.ImageField('Foto 320 x 320', upload_to = productos_photos_320_320_directory, blank = True, null = True)
 
+    @classmethod
+    def sincronizar_productos(cls):
+        # Se sincronizan los productos a partir de las urls en support.url_productos
+        for url_producto in urls_productos:
+            print('Sincronizando %s' %url_producto)
+            cls.sincronizar_producto_from_url(url_producto)
+
+            wait = randint(16, 32)
+
+            # Esperando para no estresar a Amazon
+            print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
+            print('')
+
+            time.sleep(wait)
+
+        # Al terminar de sincronizar todos los productos, se eliminan aquellos que no tengan toda la información de manera correcta
+        for producto in Producto.objects.all():
+            producto.verificar_producto()
+
+    @classmethod
+    def get_edge_prices(cls, productos):
+        # Devuelve el precio mínimo y máximo de todos los productos de un conjunto
+        # productos debe ser una Queryset
+        productos = productos.order_by('precio_final')
+        min_price = math.floor(productos.first().precio_final)
+        max_price = math.ceil(productos.last().precio_final)
+        return [min_price, max_price]
+
     def verificar_producto(self):
         # Las pruebas a las que se somete un producto son:
-        # 1 - Que tenga un nombre, una categoría y una sub_categoría
-        if self.nombre and self.categoria and self.sub_categoria:
-            # 2 - Que tenga todas las imágenes:
-            if self.foto_320_320 and self.foto_920_614 and self.foto_464_299:
-                return True
-        # Si alguna de las pruebas no se supera, el producto es eliminado
-        self.eliminar_producto()
+        # 1 - Que tenga un nombre, una categoría y una foto de 320 x 320
+        if self.nombre and self.categoria and self.foto_320_320:
+            return True
+        else:
+            self.eliminar_producto()
+            return None
+
+    def get_star_classes(self):
+        star_classes = []
+        if not self.evaluacion or self.evaluacion == 0:
+            star_classes = ['fa-star-o', 'fa-star-o', 'fa-star-o', 'fa-star-o', 'fa-star-o']
+        else:
+            entero = int(self.evaluacion)
+            decimal = abs(self.evaluacion) - abs(entero)
+            # Se añaden tantos "True" como unidades completas haya.
+            for star in range(entero):
+                star_classes.append('fa-star')
+            # Para determinar si el sobrante decimal implica media, una o ninguna estrella, se sigue la sgte lógica:
+            if decimal > 0.25 and decimal < 0.75:
+                star_classes.append('fa-star-half-empty')
+            elif decimal > 0.75:
+                star_classes.append('fa-star')
+            # Completamos con 5 estrellas la puntuación
+            while len(star_classes) < 5:
+                star_classes.append('fa-star-o')
+        return star_classes
 
     @classmethod
     def nuevo_producto(
-        cls, nombre, precio_antes, precio_final, ahorro_euros, ahorro_porciento, categoria, sub_categoria, url_afiliado,
+        cls, nombre, precio_antes, precio_final, ahorro_euros, ahorro_porciento, categoria, url_afiliado,
         url_imagen_principal, asin, opiniones, evaluacion
     ):
+        # Solo creamos el producto si no hay otro con el mismo nombre, en caso ontrario lo modificamos
         if not cls.objects.filter(nombre = nombre):
             n_producto = cls.objects.create(
                 nombre = nombre,
+                nombre_corto = nombre[:83] + '...',
                 url_amigable = slugify(nombre),
                 precio_antes = precio_antes,
                 precio_final = precio_final,
                 ahorro_euros = ahorro_euros,
                 ahorro_porciento = ahorro_porciento,
                 categoria = categoria,
-                sub_categoria = sub_categoria,
                 url_afiliado = url_afiliado,
                 url_imagen_principal = url_imagen_principal,
                 asin = asin,
@@ -182,7 +287,6 @@ class Producto(models.Model):
                 ahorro_euros = ahorro_euros,
                 ahorro_porciento = ahorro_porciento,
                 categoria = categoria,
-                sub_categoria = sub_categoria,
                 url_afiliado = url_afiliado,
                 url_imagen_principal = url_imagen_principal,
                 asin = asin,
@@ -192,7 +296,7 @@ class Producto(models.Model):
             return producto
 
     def modificar_producto(
-        self, nombre, precio_antes, precio_final, ahorro_euros, ahorro_porciento, categoria, sub_categoria, url_afiliado,
+        self, nombre, precio_antes, precio_final, ahorro_euros, ahorro_porciento, categoria, url_afiliado,
         url_imagen_principal, asin, opiniones, evaluacion):
         if self.nombre != nombre:
             self.nombre = nombre
@@ -207,8 +311,6 @@ class Producto(models.Model):
             self.ahorro_porciento = ahorro_porciento
         if self.categoria != categoria:
             self.categoria = categoria
-        if self.sub_categoria != sub_categoria:
-            self.sub_categoria = sub_categoria
         if self.url_afiliado != url_afiliado:
             self.url_afiliado = url_afiliado
         if self.url_imagen_principal != url_imagen_principal:
@@ -228,11 +330,6 @@ class Producto(models.Model):
     def eliminar_productos(cls):
         for producto in cls.objects.all():
             producto.eliminar_producto()
-        # Luego de eliminar todos los productos, elimina todas las sub_categorías y todas las categorías
-        for sub_categoria in Sub_Categoria.objects.all():
-            sub_categoria.eliminar_sub_categoria()
-        for categoria in Categoria.objects.all():
-            categoria.eliminar_categoria()
 
     def eliminar_producto(self):
         # Al eliminar un producto, debemos eliminar todas las imágenes relacionadas antes
@@ -242,19 +339,12 @@ class Producto(models.Model):
             self.eliminar_foto_producto('920_614')
         if self.foto_320_320:
             self.eliminar_foto_producto('320_320')
-        # Antes de eliminar un producto, comprobamos si es el último de su Subcategoría y Categoría. Si es el caso estas se eliminan también
-        categoria = self.categoria
-        sub_categoria = self.sub_categoria
-
+        print('Eliminando producto %s' %self.nombre)
         self.delete()
-
-        if sub_categoria.producto_set.count() == 0:
-            sub_categoria.eliminar_sub_categoria()
-        if categoria.producto_set.count() == 0:
-            categoria.eliminar_categoria()
 
     def eliminar_foto_producto(self, size):
         # Elimina el fichero de imagen de una foto del Producto
+        print('Eliminando foto de Producto %s' %self.nombre)
         if size == '920_614':
             self.foto_920_614.delete()
         elif size == '464_299':
@@ -268,6 +358,7 @@ class Producto(models.Model):
         if os.path.exists(producto_foto_path):
             if not os.listdir(producto_foto_path):
                 shutil.rmtree(producto_foto_path)
+
         # Luego comprueba si no hay nada más dentro de la carpeta del producto, y si es así la elimina también
         producto_path = '%s/productos/%s' % (settings.MEDIA_ROOT, self.id)
         if os.path.exists(producto_path):
@@ -320,221 +411,106 @@ class Producto(models.Model):
             self.foto_320_320.save(file_name, files.File(fp))
             self.save()
             crop_from_center(
-                image_path=self.foto_320_320.path,
+                image_path = self.foto_320_320.path,
                 width = 320,
                 height = 320,
                 save = True,
             )
 
     @classmethod
-    def sincronizar_productos(cls):
-        # Sincroniza todos los productos con Amazon a partir de la información en "support/url_productos.py"
-        # Con este ciclo nos aseguramos de meter todos los productos que estén en la lista de urls de afiliado en nuestra BD
-        for url in urls_productos.urls_productos:
-            producto = cls.sincronizar_producto(url_afiliado = url)
-
-            # Esperando para no estresar a Amazon
-            wait = time.sleep(randint(9, 21))
-
-        # Al terminar de sincronizar todos los productos, se eliminan aquellos que no tengan toda la información de manera correcta
-        for producto in Producto.objects.all():
-            producto.verificar_producto()
-
-    @classmethod
-    def parser_precio(cls, text):
-        # Devuelve un diccionario con toda la información posible del precio de un producto en Amazon.
-        # Esta información se estructura de la siguiente manera:
-        data_precio = {
-            'precio_antes': None,
-            'precio_final': None,
-            'ahorro_euros': None,
-            'ahorro_porciento': None,
-        }
-
-        if '<div id="price"' in text:
-            # Si se encuentra el div que contiene la información del precio en el código html provisto, recoramos el texto a
-            # analizar solamente al contenido de dicho div, para evitar ruido y acortar el trabajoj al procesador
-            div_precio = text.split('<div id="price"')[1].split('</div>')[0]
-
-            # 1 - precio_antes
-            if '<span class="a-text-strike">' in div_precio:
-                try:
-                    precio_antes = Decimal(
-                        div_precio.split('<span class="a-text-strike"> EUR ')[1].split('</span>')[0].replace(',', '.'))
-                    data_precio['precio_antes'] = precio_antes
-                except:
-                    print('Error extrayendo el precio original del producto')
-
-            # 2 - precio_final
-            if '<span id="priceblock_ourprice" class="a-size-medium a-color-price">' in div_precio:
-                try:
-                    precio_final = Decimal(
-                        div_precio.split('<span id="priceblock_ourprice" class="a-size-medium a-color-price">EUR ')[
-                            1].split('</span>')[0].replace(',', '.'))
-                    data_precio['precio_final'] = precio_final
-                except:
-                    print('Error extrayendo el precio final del producto')
-
-            # 3 - ahorro_euros
-            # Ya para los valores que faltan no es necesario parsear el html, directamente se puede calcular con los valores que tenemos
-            if data_precio['precio_antes'] and data_precio['precio_final']:
-                ahorro_euros = data_precio['precio_antes'] - data_precio['precio_final']
-                data_precio['ahorro_euros'] = ahorro_euros
-
-            # 4 - ahorro_porciento
-            if data_precio['ahorro_euros']:
-                ahorro_porciento = round(data_precio['ahorro_euros'] * 100 / data_precio['precio_antes'], 0)
-                data_precio['ahorro_porciento'] = ahorro_porciento
-
-        # Se devuelve el diccionario con la información del precio que se haya podido obtener del texto provisto
-        return data_precio
-
-    @classmethod
-    def parser_imagenes(cls, texto):
-        detalles_imagenes = {
-            'url_imagen_principal': None,
-            'urls_imagenes': [],
-        }
-        url_imagen_principal = texto.split('<li class="image item itemNo0')[1].split('data-old-hires="')[1].split('"')[0]
-        if len(url_imagen_principal) < 20 or not 'https://' in url_imagen_principal or not '.jpg' in url_imagen_principal:
-
-            url_imagen_principal = 'https%sjpg' %texto.split('<li class="image item itemNo0')[1].split('data-old-hires="')[1].split('jpg')[0].split('https')[1]
-            if len(url_imagen_principal) < 20 or not 'https://' in url_imagen_principal or not '.jpg' in url_imagen_principal:
-                print('Ha habido un problema con la URL de la imagen')
-        detalles_imagenes['url_imagen_principal'] = url_imagen_principal
-        return detalles_imagenes
-
-    @classmethod
-    def parse_nombre(cls, texto):
-        if '"TURBO_CHECKOUT_HEADER":"Comprar ahora: ' in texto:
-            nombre = texto.split('"TURBO_CHECKOUT_HEADER":"Comprar ahora: ')[1].split('","TURBO_LOADING_TEXT"')[0]
-            if '&nbsp;' in nombre:
-                nombre = nombre.replace('&nbsp;', ' ')
-            if '&aacute;' in nombre:
-                nombre = nombre.replace('&aacute;', 'á')
-            if '&eacute;' in nombre:
-                nombre = nombre.replace('&aacute;', 'é')
-            if '&iacute;' in nombre:
-                nombre = nombre.replace('&aacute;', 'í')
-            if '&oacute;' in nombre:
-                nombre = nombre.replace('&aacute;', 'ó')
-            if '&uacute;' in nombre:
-                nombre = nombre.replace('&aacute;', 'ú')
-        else:
-            nombre = None
-        return nombre
-
-    @classmethod
-    def parse_categorias(cls, texto):
-        if "<select aria-describedby='searchDropdownDescription'" in texto:
-            segment = texto.split("<select aria-describedby='searchDropdownDescription'")[1].split('</select>')[0]
-            categoria_text = segment.split("<option current='parent' selected='selected' value=")[1].split("</option>")[0].split('>')[1]
-            categoria, created = Categoria.objects.get_or_create(
-                nombre = categoria_text,
-            )
-        else:
-            categoria = None
-
-        if 'wayfinding-breadcrumbs_feature_div' in texto:
-            sub_categoria_text = texto.split('wayfinding-breadcrumbs_feature_div')[1].split('<a class=')[1].split('</a>')[0].split('>')[1].replace('\n', '').replace('  ', '')
-            sub_categoria, created = Sub_Categoria.objects.get_or_create(
-                nombre = sub_categoria_text,
-                categoria = categoria,
-            )
-        else:
-            sub_categoria = None
-
-        return categoria, sub_categoria
-
-    @classmethod
-    def parse_asin(cls, texto):
-        if '<input type="hidden" id="ASIN" name="ASIN" value="' in texto:
-            asin = texto.split('<input type="hidden" id="ASIN" name="ASIN" value="')[1].split('"')[0]
-        else:
-            asin = None
-        return asin
-
-    @classmethod
-    def parse_opiniones(cls, texto):
-        if '<span id="acrCustomerReviewText" class="a-size-base">' in texto:
-            opiniones = int(texto.split('<span id="acrCustomerReviewText" class="a-size-base">')[1].split(' ')[0])
-        else:
-            opiniones = None
-        return opiniones
-
-    @classmethod
-    def parse_evaluacion(cls, texto):
-        if '<span id="acrPopover" class="reviewCountTextLinkedHistogram noUnderline" title="' in texto:
-            return Decimal(
-                texto.split('<span id="acrPopover" class="reviewCountTextLinkedHistogram noUnderline" title="')[1].split(' ')[0])
-        else:
-            return None
-
-    @classmethod
-    def sincronizar_producto(cls, url_afiliado):
-
+    def sincronizar_producto_from_url(cls, url_producto):
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
 
-        if True:
-            # Retrying for failed requests
-            for i in range(20):
-                # Adding verify=False to avold ssl related issues
-                response = requests.get(url_afiliado, headers = headers, verify = False)
-
+        try:
+            # Se realizan hasta 20 intentos de recuperación de información por producto,
+            # por si Amazon detecta una y otra vez un acceso automatizado
+            for attempt in range(20):
+                # Se realiza una petición GET a la url del producto en Amazon
+                response = requests.get(url_producto, headers = headers, verify = False)
+                # Si el código recibido es 200, la conexión ha sido exitosa y se procede con el parseo de información
                 if response.status_code == 200:
-                    r = response.text
-                    # La información a extraer del Producto es:
+                    try:
+                        # Se obtiene el código HTML de la respuesta del servidor de Amazon
+                        html = response.text
 
-                    # 1 - URL de la imagen principal:
-                    detalles_imagenes = cls.parser_imagenes(r)
-                    url_imagen_principal = detalles_imagenes['url_imagen_principal']
-                    urls_imagenes = detalles_imagenes['urls_imagenes']
+                        # Una vez tenemos el código HTML, se comprueba si contiene la información deseada, o Amazon ha
+                        # detectado nuestro acceso automatizado
+                        if 'For automated access to price change or offer listing change events' in html:
+                            print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en unos segundos...')
+                            time.sleep(15)
+                            continue
 
-                    # 2 - Precio:
-                    detalles_precio = cls.parser_precio(r)
-                    precio_antes = detalles_precio['precio_antes']
-                    precio_final = detalles_precio['precio_final']
-                    ahorro_euros = detalles_precio['ahorro_euros']
-                    ahorro_porciento = detalles_precio['ahorro_porciento']
+                        # Si hemos superado la prueba anterior y Amazon nos ha devuelto información útil sobre el proyecto,
+                        # entonces extraemos la información del mismo. Esta consta de:
+                        # 1 - URL de la imagen principal:
+                        url_imagen_principal = methods.parse_url_imagen_principal(html)
+                        # Siempre al final de cada parámetro del producto, comprobamos si hemos obtenido correctamente la información
+                        if not url_imagen_principal:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            break
 
-                    # 3 - Nombre:
-                    nombre = cls.parse_nombre(r)
+                        # 2 - Precio:
+                        detalles_precio = methods.parser_precio(html)
+                        precio_antes = detalles_precio['precio_antes']
+                        precio_final = detalles_precio['precio_final']
+                        ahorro_euros = detalles_precio['ahorro_euros']
+                        ahorro_porciento = detalles_precio['ahorro_porciento']
+                        # El precio_final es requisito para que se considere correcta la información obtenida
+                        if not precio_final:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            break
 
-                    # 4 - Categoría y Sub Categoría:
-                    categoria, sub_categoria = cls.parse_categorias(r)
+                        # 3 - Nombre:
+                        nombre = methods.parse_nombre(html)
+                        if not nombre:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            break
 
-                    # 5 - ASIN
-                    asin = cls.parse_asin(r)
+                        # 4 - Categoría:
+                        categoria_name = methods.parse_categoria(html)
+                        if categoria_name:
+                            categoria = Categoria.get_categoria_from_name(categoria_name)
+                        else:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            break
 
-                    # 6 - Cantidad de opiniones
-                    opiniones = cls.parse_opiniones(r)
+                        # 5 - ASIN
+                        asin = methods.parse_asin(html)
 
-                    # 7 - Evaluación promedio
-                    evaluacion = cls.parse_evaluacion(r)
+                        # 6 - Cantidad de opiniones
+                        opiniones = methods.parse_opiniones(html)
 
-                    n_producto = cls.nuevo_producto(
-                        nombre = nombre,
-                        precio_antes = precio_antes,
-                        precio_final = precio_final,
-                        ahorro_euros = ahorro_euros,
-                        ahorro_porciento = ahorro_porciento,
-                        categoria = categoria,
-                        sub_categoria = sub_categoria,
-                        url_afiliado = url_afiliado,
-                        url_imagen_principal = url_imagen_principal,
-                        asin = asin,
-                        opiniones = opiniones,
-                        evaluacion = evaluacion,
-                    )
+                        # 7 - Evaluación promedio
+                        evaluacion = methods.parse_evaluacion(html)
 
-                    return n_producto
+                        n_producto = cls.nuevo_producto(
+                            nombre = nombre,
+                            precio_antes = precio_antes,
+                            precio_final = precio_final,
+                            ahorro_euros = ahorro_euros,
+                            ahorro_porciento = ahorro_porciento,
+                            categoria = categoria,
+                            url_afiliado = url_producto,
+                            url_imagen_principal = url_imagen_principal,
+                            asin = asin,
+                            opiniones = opiniones,
+                            evaluacion = evaluacion,
+                        )
+
+                    except:
+                        print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                        break
 
                 elif response.status_code == 404:
+                    print('Amazon ha respondido un código 404, abandonamos el  producto')
                     break
 
-        # except Exception as e:
-        #     print(e)
-        #     print('Ha habido un problema con %s' %url_afiliado)
+        except Exception as e:
+            print(e)
+            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+
+    # Declaración del object manager
+    objects = Producto_Manager()
 
     class Meta():
         verbose_name_plural = 'Productos'
