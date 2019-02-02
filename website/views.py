@@ -1,5 +1,4 @@
-from django.shortcuts import render, redirect
-# import datetime, pytz
+from django.shortcuts import render
 from decimal import Decimal
 from productos.models import Producto, Categoria
 
