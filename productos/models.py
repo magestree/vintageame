@@ -64,7 +64,7 @@ class Categoria(models.Model):
     def get_categoria_from_name(cls, categoria_name):
         categoria = cls.objects.filter(nombre = categoria_name)
         if not categoria:
-            print('No existe ninguna categoría con nombre %s, así que la creamos' % categoria_name)
+            print('No existe ninguna categoría con nombre %s, así que la creamos' %categoria_name)
             categoria = Categoria.nueva_categoria(
                 nombre = categoria_name,
                 descripcion = None,
@@ -80,7 +80,7 @@ class Categoria(models.Model):
             print('Creada la nueva categoría: %s' % categoria)
         else:
             categoria = categoria.first()
-            print('Ya existe al menos una categoría con nombre %s, así que tomamos la existente (%s)' %(categoria_name, categoria.first()))
+            print('Ya existe al menos una categoría con nombre %s, así que tomamos la existente (%s)' %(categoria_name, categoria))
         return categoria
 
     @classmethod
@@ -120,7 +120,6 @@ class Categoria(models.Model):
     def eliminar_categorias(cls):
         for categoria in cls.objects.all():
             categoria.eliminar_categoria()
-        Producto.eliminar_productos()
 
     class Meta():
         verbose_name_plural = 'Categorías'
@@ -353,14 +352,17 @@ class Producto(models.Model):
             self.foto_320_320.delete()
 
         # Comprobar si existen más fotos en el directorio definido para ello, y si no, eliminarlo
-        producto_foto_path = '%s/productos/%s/fotos/%s' % (settings.MEDIA_ROOT, self.id, size)
+        producto_foto_path = '%s/productos/%s/photos/%s' % (settings.MEDIA_ROOT, self.id, size)
 
         if os.path.exists(producto_foto_path):
             if not os.listdir(producto_foto_path):
                 shutil.rmtree(producto_foto_path)
+                print('Eliminado el archivo de la foto del producto en %s' %producto_foto_path)
+        else:
+            print('No podemos eliminar el archivo de la foto porque no existe la ruta: %s' %producto_foto_path)
 
         # Luego comprueba si no hay nada más dentro de la carpeta del producto, y si es así la elimina también
-        producto_path = '%s/productos/%s' % (settings.MEDIA_ROOT, self.id)
+        producto_path = '%s/productos/%s' %(settings.MEDIA_ROOT, self.id)
         if os.path.exists(producto_path):
             if not os.listdir(producto_path):
                 shutil.rmtree(producto_path)
@@ -496,8 +498,12 @@ class Producto(models.Model):
                             opiniones = opiniones,
                             evaluacion = evaluacion,
                         )
+                        
+                        # Si logramos crear el producto, salimos del for de intentos
+                        break
 
-                    except:
+                    except Exception as e:
+                        print(e)
                         print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
                         break
 
@@ -506,6 +512,7 @@ class Producto(models.Model):
                     break
 
         except Exception as e:
+        # else:
             print(e)
             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
 
