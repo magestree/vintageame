@@ -1,38 +1,10 @@
 <!-- Categories -->
 <div class="widget margin-top-0">
     <h3 class="headline">Categorías</h3><span class="line"></span><div class="clearfix"></div>
-
     <ul id="categories">
         {% for categoria in categorias %}
             <li><a href="{% url 'productos:categoria' categoria.url_amigable %}">{{ categoria.nombre }} <span>({{ categoria.producto_set.count }})</span></a>
         {% endfor %}
-{#            <ul>#}
-{#                <li><a href="#">Hats <span>(2)</span></a></li>#}
-{#                <li><a href="#">Bags <span>(2)</span></a></li>#}
-{#                <li><a href="#">Gloves  <span>(1)</span></a></li>#}
-{#                <li><a href="#">Belts <span>(3)</span></a></li>#}
-{##}
-{#                <li><a href="#">Accessories <span>(8)</span></a>#}
-{#                    <ul>#}
-{#                        <li><a href="#">Hats <span>(2)</span></a></li>#}
-{#                        <li><a href="#">Bags <span>(2)</span></a></li>#}
-{#                        <li><a href="#">Gloves  <span>(1)</span></a></li>#}
-{#                        <li><a href="#">Belts <span>(3)</span></a></li>#}
-{#                    </ul>#}
-{#                </li>#}
-{#            </ul>#}
-{#        </li>#}
-
-{#        <li><a href="#">Jewelry <span>(12)</span></a>#}
-{#            <ul>#}
-{#                <li><a href="#">Rings <span>(3)</span></a></li>#}
-{#                <li><a href="#">Necklaces  <span>(2)</span></a></li>#}
-{#                <li><a href="#">Bracelets <span>(4)</span></a></li>#}
-{#                <li><a href="#">Watches <span>(3)</span></a></li>#}
-{#            </ul>#}
-{#        </li>#}
-
     </ul>
     <div class="clearfix"></div>
-
 </div>
