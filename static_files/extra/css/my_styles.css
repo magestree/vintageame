@@ -50,7 +50,12 @@
 @font-face {
     font-family: Vintage;
     /*src: url('../../extra/fonts/CANDY___.otf');*/
-    src: url('../../extra/fonts/Beautiful_People.ttf');
+    /*src: url('../../extra/fonts/Beautiful_People.ttf');*/
+    /*src: url('../../extra/fonts/Painter_PERSONAL_USE_ONLY.ttf');*/
+    /*src: url('../../extra/fonts/Variane Script.ttf');*/
+    /*src: url('../../extra/fonts/Bohem Press Free.ttf');*/
+    /*src: url('../../extra/fonts/PrequelDemo-Regular.ttf');*/
+    src: url('../../extra/fonts/Blenda Script.otf');
 }
 
 .font-vintage {

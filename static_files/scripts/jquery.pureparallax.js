@@ -1,4 +1,11 @@
 (function($) {
+    /**
+     * Copyright 2014, Purethemes
+     * Licensed under the MIT license.
+     *
+     * @author Lukasz Girek
+     * @desc A small plugin that scroll background of div based on window scroll position.
+     */
      $.fn.pureparallax = function( options ) {
 
         return this.each( function() {

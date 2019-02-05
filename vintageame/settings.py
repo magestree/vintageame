@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'website',
     'productos',
     'maintenance_mode',
+    'api',
 ]
 
 MIDDLEWARE = [
