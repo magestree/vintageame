@@ -1,0 +1,16 @@
+<div class="one-third column portfolio-item">
+    <figure>
+        <div class="portfolio-holder">
+            <a href="{% url 'productos:categoria' categoria.url_amigable %}">
+                <img alt="Productos vintage de {{ categoria.nombre }}" src="{{ categoria.producto_set.all.first.url_imagen_principal }}"/>
+                <div class="hover-cover"></div>
+                <div class="hover-icon"></div>
+            </a>
+        </div>
+        <a href="{% url 'productos:categoria' categoria.url_amigable %}">
+            <section class="item-description">
+                <span>{{ categoria.nombre }}</span>
+            </section>
+        </a>
+    </figure>
+</div>

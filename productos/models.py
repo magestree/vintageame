@@ -201,7 +201,10 @@ class Producto(models.Model):
         # Se sincronizan los productos a partir de las urls en support.url_productos
         for url_producto in urls_productos:
             print('Sincronizando %s' %url_producto)
-            cls.sincronizar_producto_from_url(url_producto)
+            done = cls.sincronizar_producto_from_url(url_producto)
+            if done == 'banned':
+                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
+                break
 
             # wait = randint(19, 20)
             wait = 19
@@ -520,7 +523,9 @@ class Producto(models.Model):
                 elif response.status_code == 404:
                     print('Amazon ha respondido un código 404, abandonamos el  producto')
                     break
-
+                elif response.status_code == 503:
+                    print('Amazon ha baneado nuestra IP. Hay que esperar e intentarlo otro día')
+                    break
                 else:
                     print('Hemos obtenido un código %s por parte de Amazon, es imposible procesar la petición' %response.status_code)
 

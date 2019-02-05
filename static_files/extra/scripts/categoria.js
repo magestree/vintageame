@@ -1,5 +1,5 @@
 $('#submit_price_filter').on('click', function () {
-    $(this).closest("form").submit();
+    $('#form_price_filter').submit();
 });
 
 categoria_id = $('#categoria_id').attr('class');

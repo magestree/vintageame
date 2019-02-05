@@ -2,7 +2,7 @@
 <div class="widget">
     <h3 class="headline">Precio</h3><span class="line"></span><div class="clearfix"></div>
 
-    <form method = 'POST'>{% csrf_token %}
+    <form method = 'POST' id = 'form_price_filter'>{% csrf_token %}
         <input type = 'hidden' name = 'order_by' value = '{{ order_by }}'>
         <div id="price-range">
             <div class="padding-range"><div id="slider-range2"></div></div>

@@ -46,6 +46,26 @@ def categoria(request, url_amigable):
         order_by = 'precio_final'
         productos = categoria.producto_set.order_by(order_by, 'precio_final')
 
+    # Añadiendo información adicional a los productos
+    for producto in productos:
+        if producto.evaluacion:
+            if producto.evaluacion - int(producto.evaluacion) == 0.5:
+                rounded = round(producto.evaluacion + Decimal(0.1))
+            else:
+                rounded = round(producto.evaluacion)
+            if rounded == 5:
+                producto.evaluacion_int = 'five'
+            elif rounded == 4:
+                producto.evaluacion_int = 'four'
+            elif rounded == 3:
+                producto.evaluacion_int = 'three'
+            elif rounded == 2:
+                producto.evaluacion_int = 'two'
+            elif rounded == 1:
+                producto.evaluacion_int = 'one'
+        else:
+            producto.evaluacion_int = None
+
     context = {
         'categoria': categoria,
         'categorias': categorias,
@@ -55,7 +75,7 @@ def categoria(request, url_amigable):
         # 'precio_maximo': precio_maximo,
     }
 
-    return render(request, 'productos/categoria.html', context)
+    return render(request, 'productos/productos.html', context)
 
 def get_edge_prices(request, categoria_id):
 
@@ -84,5 +104,4 @@ def get_edge_prices(request, categoria_id):
         'min_price_session': min_price_session,
         'max_price_session': max_price_session,
     }
-
     return HttpResponse(json.dumps(resultado), content_type = 'application/json')
