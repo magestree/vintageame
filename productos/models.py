@@ -232,21 +232,23 @@ class Producto(models.Model):
         )
 
     @classmethod
-    def sync_remote_products(cls, preproduction = True, production = True):
+    def sync_remote_products(cls):
         # Entornos a sincronizar: Preproducción y Producción
+        API_URLS = ['https://prepro.productos-vintage.com/api/']
         for api_url in API_URLS:
             productos_url_amigables = []
-            for producto_dict in Producto.get_productos_as_dict():
+            for producto_dict in Producto.get_productos_as_dict()[0:1]:
                 productos_url_amigables.append(producto_dict.get('url_amigable'))
                 r = cls.add_remote_product(api_url, producto_dict)
                 print(r.text, r.status_code)
+                # print(producto_dict)
 
             # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
             # Ahora necesitamos comprobar si hay registros en remoto que deben ser eliminados porque no constan en los registros a sincronizar
-            for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
-                if producto_dict.get('url_amigable') not in productos_url_amigables:
-                    r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
-                    print(r.text, r.status_code)
+            # for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
+            #     if producto_dict.get('url_amigable') not in productos_url_amigables:
+            #         r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
+            #         print(r.text, r.status_code)
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
@@ -378,7 +380,7 @@ class Producto(models.Model):
                 opiniones = opiniones,
                 evaluacion = evaluacion,
             )
-            n_producto.set_formatos_imagen_principal()
+            # n_producto.set_formatos_imagen_principal()
             return n_producto
         else:
             producto = cls.objects.get(nombre = nombre)
@@ -418,7 +420,7 @@ class Producto(models.Model):
         if self.url_imagen_principal != url_imagen_principal:
             self.url_imagen_principal = url_imagen_principal
             self.save()
-            self.set_formatos_imagen_principal()
+            # self.set_formatos_imagen_principal()
         if self.asin != asin:
             self.asin = asin
         if self.opiniones != opiniones:
@@ -475,54 +477,54 @@ class Producto(models.Model):
         # Se guarda cualquier cambio en el modelo Producto
         self.save()
 
-    def set_formatos_imagen_principal(self):
-        # Con este método se guardan la imagen principal en varios tamaños
-        if len(self.url_imagen_principal) > 20:
-            resp = requests.get(self.url_imagen_principal)
-            if resp.status_code != requests.codes.ok:
-                # Error handling here
-                print('Error here!')
-                return
-
-            fp = BytesIO()
-            fp.write(resp.content)
-            file_name = self.url_imagen_principal.split("/")[-1]
-
-            # 1 - 920 x 614
-            if self.foto_920_614:
-                self.eliminar_foto_producto(size = '920_614')
-            self.foto_920_614.save(file_name, files.File(fp))
-            self.save()
-            crop_from_center(
-                image_path = self.foto_920_614.path,
-                width = 920,
-                height = 614,
-                save = True,
-            )
-
-            # 2 - 464 x 299
-            if self.foto_464_299:
-                self.eliminar_foto_producto(size = '464_299')
-            self.foto_464_299.save(file_name, files.File(fp))
-            self.save()
-            crop_from_center(
-                image_path = self.foto_464_299.path,
-                width = 464,
-                height = 299,
-                save = True,
-            )
-
-            # 2 - 320 x 320
-            if self.foto_320_320:
-                self.eliminar_foto_producto(size = '320_320')
-            self.foto_320_320.save(file_name, files.File(fp))
-            self.save()
-            crop_from_center(
-                image_path = self.foto_320_320.path,
-                width = 320,
-                height = 320,
-                save = True,
-            )
+    # def set_formatos_imagen_principal(self):
+    #     # Con este método se guardan la imagen principal en varios tamaños
+    #     if len(self.url_imagen_principal) > 20:
+    #         resp = requests.get(self.url_imagen_principal)
+    #         if resp.status_code != requests.codes.ok:
+    #             # Error handling here
+    #             print('Error here!')
+    #             return
+    #
+    #         fp = BytesIO()
+    #         fp.write(resp.content)
+    #         file_name = self.url_imagen_principal.split("/")[-1]
+    #
+    #         # 1 - 920 x 614
+    #         if self.foto_920_614:
+    #             self.eliminar_foto_producto(size = '920_614')
+    #         self.foto_920_614.save(file_name, files.File(fp))
+    #         self.save()
+    #         crop_from_center(
+    #             image_path = self.foto_920_614.path,
+    #             width = 920,
+    #             height = 614,
+    #             save = True,
+    #         )
+    #
+    #         # 2 - 464 x 299
+    #         if self.foto_464_299:
+    #             self.eliminar_foto_producto(size = '464_299')
+    #         self.foto_464_299.save(file_name, files.File(fp))
+    #         self.save()
+    #         crop_from_center(
+    #             image_path = self.foto_464_299.path,
+    #             width = 464,
+    #             height = 299,
+    #             save = True,
+    #         )
+    #
+    #         # 2 - 320 x 320
+    #         if self.foto_320_320:
+    #             self.eliminar_foto_producto(size = '320_320')
+    #         self.foto_320_320.save(file_name, files.File(fp))
+    #         self.save()
+    #         crop_from_center(
+    #             image_path = self.foto_320_320.path,
+    #             width = 320,
+    #             height = 320,
+    #             save = True,
+    #         )
 
     @classmethod
     def sincronizar_producto_from_url(cls, url_producto):
