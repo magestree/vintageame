@@ -202,11 +202,6 @@ class Producto(models.Model):
     evaluacion = models.DecimalField('Evaluación',  max_digits = 3, decimal_places = 2, blank = True, null = True, unique = False)
     fecha_registro = models.DateTimeField('Fecha de registro', blank = True, null = True, auto_now_add = True)
 
-    # Fotos
-    # foto_920_614 = models.ImageField('Foto 920 x 614', upload_to = productos_photos_920_614_directory, blank = True, null = True)
-    # foto_464_299 = models.ImageField('Foto 464 x 299', upload_to = productos_photos_464_299_directory, blank = True, null = True)
-    # foto_320_320 = models.ImageField('Foto 320 x 320', upload_to = productos_photos_320_320_directory, blank = True, null = True)
-
     @classmethod
     def add_remote_product(cls, api_url, producto_dict):
         return requests.post(
@@ -234,13 +229,13 @@ class Producto(models.Model):
     @classmethod
     def sync_remote_products(cls):
         # Entornos a sincronizar: Preproducción y Producción
-        API_URLS = ['https://prepro.productos-vintage.com/api/']
+        # API_URLS = ['https://prepro.productos-vintage.com/api/']
         for api_url in API_URLS:
             productos_url_amigables = []
             for producto_dict in Producto.get_productos_as_dict():
                 productos_url_amigables.append(producto_dict.get('url_amigable'))
                 r = cls.add_remote_product(api_url, producto_dict)
-                # print(r.text, r.status_code)
+                print(r.text, r.status_code)
                 time.sleep(5)
 
             # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
@@ -248,6 +243,8 @@ class Producto(models.Model):
             for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
                 if producto_dict.get('url_amigable') not in productos_url_amigables:
                     r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
+                    print(r.text, r.status_code)
+                    time.sleep(5)
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
@@ -435,46 +432,39 @@ class Producto(models.Model):
             producto.eliminar_producto()
 
     def eliminar_producto(self):
-        # Al eliminar un producto, debemos eliminar todas las imágenes relacionadas antes
-        if self.foto_464_299:
-            self.eliminar_foto_producto('464_299')
-        if self.foto_920_614:
-            self.eliminar_foto_producto('920_614')
-        if self.foto_320_320:
-            self.eliminar_foto_producto('320_320')
         print('Eliminando producto %s' %self.nombre)
         self.delete()
 
-    def eliminar_foto_producto(self, size):
-        # Elimina el fichero de imagen de una foto del Producto
-        print('Eliminando foto de Producto %s' %self.nombre)
-        if size == '920_614':
-            self.foto_920_614.delete()
-        elif size == '464_299':
-            self.foto_464_299.delete()
-        elif size == '320_320':
-            self.foto_320_320.delete()
-
-        # Comprobar si existen más fotos en el directorio definido para ello, y si no, eliminarlo
-        producto_foto_path = '%s/productos/%s/photos/%s' % (settings.MEDIA_ROOT, self.id, size)
-
-        if os.path.exists(producto_foto_path):
-            if not os.listdir(producto_foto_path):
-                shutil.rmtree(producto_foto_path)
-                print('Eliminado el archivo de la foto del producto en %s' %producto_foto_path)
-            else:
-                print('Tenemos elementos dentro de %s' %producto_foto_path)
-        else:
-            print('No podemos eliminar el archivo de la foto porque no existe la ruta: %s' %producto_foto_path)
-
-        # Luego comprueba si no hay nada más dentro de la carpeta del producto, y si es así la elimina también
-        producto_path = '%s/productos/%s' %(settings.MEDIA_ROOT, self.id)
-        if os.path.exists(producto_path):
-            if not os.listdir(producto_path):
-                shutil.rmtree(producto_path)
-
-        # Se guarda cualquier cambio en el modelo Producto
-        self.save()
+    # def eliminar_foto_producto(self, size):
+    #     # Elimina el fichero de imagen de una foto del Producto
+    #     print('Eliminando foto de Producto %s' %self.nombre)
+    #     if size == '920_614':
+    #         self.foto_920_614.delete()
+    #     elif size == '464_299':
+    #         self.foto_464_299.delete()
+    #     elif size == '320_320':
+    #         self.foto_320_320.delete()
+    #
+    #     # Comprobar si existen más fotos en el directorio definido para ello, y si no, eliminarlo
+    #     producto_foto_path = '%s/productos/%s/photos/%s' % (settings.MEDIA_ROOT, self.id, size)
+    #
+    #     if os.path.exists(producto_foto_path):
+    #         if not os.listdir(producto_foto_path):
+    #             shutil.rmtree(producto_foto_path)
+    #             print('Eliminado el archivo de la foto del producto en %s' %producto_foto_path)
+    #         else:
+    #             print('Tenemos elementos dentro de %s' %producto_foto_path)
+    #     else:
+    #         print('No podemos eliminar el archivo de la foto porque no existe la ruta: %s' %producto_foto_path)
+    #
+    #     # Luego comprueba si no hay nada más dentro de la carpeta del producto, y si es así la elimina también
+    #     producto_path = '%s/productos/%s' %(settings.MEDIA_ROOT, self.id)
+    #     if os.path.exists(producto_path):
+    #         if not os.listdir(producto_path):
+    #             shutil.rmtree(producto_path)
+    #
+    #     # Se guarda cualquier cambio en el modelo Producto
+    #     self.save()
 
     # def set_formatos_imagen_principal(self):
     #     # Con este método se guardan la imagen principal en varios tamaños
