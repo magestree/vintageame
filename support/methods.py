@@ -78,7 +78,7 @@ def parse_nombre(texto):
 
     # Si se obtiene un nombre que parece estar bien, solo nos quedamos con los primeros 60 caracteres para garantizar un tamaño
     # más o menos fijo en la vista previa del producto
-    nombre = nombre[:60]
+    nombre = nombre[:90]
 
     print('Se ha obtenido satisfactoriamente el nombre del producto: %s' %nombre)
     return nombre
