@@ -1,7 +1,7 @@
 from django.db import models
 from support.urls_productos import urls_productos
 from support.descripciones_categorias import categorias
-from support.globals import URL_VINTAGEAME_PREPRODUCCION, URL_VINTAGEAME_PRODUCCION, URL_VINTAGEAME_DESARROLLO
+from support.globals import API_URLS
 import requests, time, json
 from random import randint
 import urllib3, os, shutil, math
@@ -234,12 +234,7 @@ class Producto(models.Model):
     @classmethod
     def sync_remote_products(cls, preproduction = True, production = True):
         # Entornos a sincronizar: Preproducción y Producción
-        api_urls = [URL_VINTAGEAME_PREPRODUCCION]
-        # if preproduction:
-        #     api_urls.append(URL_VINTAGEAME_PREPRODUCCION)
-        # if production:
-        #     api_urls.append(URL_VINTAGEAME_PRODUCCION)
-        for api_url in api_urls:
+        for api_url in API_URLS:
             productos_url_amigables = []
             for producto_dict in Producto.get_productos_as_dict():
                 productos_url_amigables.append(producto_dict.get('url_amigable'))
