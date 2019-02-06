@@ -237,18 +237,17 @@ class Producto(models.Model):
         API_URLS = ['https://prepro.productos-vintage.com/api/']
         for api_url in API_URLS:
             productos_url_amigables = []
-            for producto_dict in Producto.get_productos_as_dict()[0:1]:
+            for producto_dict in Producto.get_productos_as_dict():
                 productos_url_amigables.append(producto_dict.get('url_amigable'))
                 r = cls.add_remote_product(api_url, producto_dict)
-                print(r.text, r.status_code)
-                # print(producto_dict)
+                # print(r.text, r.status_code)
+                time.sleep(5)
 
             # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
             # Ahora necesitamos comprobar si hay registros en remoto que deben ser eliminados porque no constan en los registros a sincronizar
-            # for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
-            #     if producto_dict.get('url_amigable') not in productos_url_amigables:
-            #         r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
-            #         print(r.text, r.status_code)
+            for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
+                if producto_dict.get('url_amigable') not in productos_url_amigables:
+                    r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
