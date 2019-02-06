@@ -1,7 +1,8 @@
 from django.db import models
 from support.urls_productos import urls_productos
 from support.descripciones_categorias import categorias
-import requests, time
+from support.globals import URL_VINTAGEAME_PREPRODUCCION, URL_VINTAGEAME_PRODUCCION, URL_VINTAGEAME_DESARROLLO
+import requests, time, json
 from random import randint
 import urllib3, os, shutil, math
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -45,6 +46,16 @@ class Categoria(models.Model):
     nombre_corto = models.CharField('Nombre cort', max_length = 40 ,blank = True, null = True)
     url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
     descripcion = models.TextField('Descripción', blank = True, null = True, max_length = 4096)
+
+    def get_categoria_as_dict(self):
+        # Devuelve el objeto Categoria como un diccionario, listo para ser enviado vía REST
+        categoria_dict = {
+            'nombre': self.nombre,
+            'nombre_corto': self.nombre_corto,
+            'url_amigable': self.url_amigable,
+            'descripcion': self.descripcion,
+        }
+        return categoria_dict
 
     def actualizar_descripcion_categoria(self):
         for categoria in categorias:
@@ -192,9 +203,102 @@ class Producto(models.Model):
     fecha_registro = models.DateTimeField('Fecha de registro', blank = True, null = True, auto_now_add = True)
 
     # Fotos
-    foto_920_614 = models.ImageField('Foto 920 x 614', upload_to = productos_photos_920_614_directory, blank = True, null = True)
-    foto_464_299 = models.ImageField('Foto 464 x 299', upload_to = productos_photos_464_299_directory, blank = True, null = True)
-    foto_320_320 = models.ImageField('Foto 320 x 320', upload_to = productos_photos_320_320_directory, blank = True, null = True)
+    # foto_920_614 = models.ImageField('Foto 920 x 614', upload_to = productos_photos_920_614_directory, blank = True, null = True)
+    # foto_464_299 = models.ImageField('Foto 464 x 299', upload_to = productos_photos_464_299_directory, blank = True, null = True)
+    # foto_320_320 = models.ImageField('Foto 320 x 320', upload_to = productos_photos_320_320_directory, blank = True, null = True)
+
+    @classmethod
+    def add_remote_product(cls, api_url, producto_dict):
+        return requests.post(
+            url = '%sadd/producto/' %api_url,
+            headers = {'Content-Type': 'application/json'},
+            data = json.dumps(producto_dict),
+        )
+
+    @classmethod
+    def get_remote_products(cls, api_url):
+        return requests.get(
+            url = '%sget/productos/' %api_url,
+            headers = {'Content-Type': 'application/json'},
+        )
+
+    @classmethod
+    def remove_remote_product(cls, api_url, url_amigable):
+        headers = {'Content-Type': 'application/json'}
+        url = '%sremove/producto/%s' %(api_url, url_amigable)
+        return requests.delete(
+            url = url,
+            headers = headers,
+        )
+
+    @classmethod
+    def sync_remote_products(cls, preproduction = True, production = True):
+        # Entornos a sincronizar: Preproducción y Producción
+        api_urls = [URL_VINTAGEAME_PREPRODUCCION]
+        # if preproduction:
+        #     api_urls.append(URL_VINTAGEAME_PREPRODUCCION)
+        # if production:
+        #     api_urls.append(URL_VINTAGEAME_PRODUCCION)
+        for api_url in api_urls:
+            productos_url_amigables = []
+            for producto_dict in Producto.get_productos_as_dict():
+                productos_url_amigables.append(producto_dict.get('url_amigable'))
+                r = cls.add_remote_product(api_url, producto_dict)
+                print(r.text, r.status_code)
+
+            # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
+            # Ahora necesitamos comprobar si hay registros en remoto que deben ser eliminados porque no constan en los registros a sincronizar
+            for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
+                if producto_dict.get('url_amigable') not in productos_url_amigables:
+                    r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
+                    print(r.text, r.status_code)
+
+    def get_producto_as_dict(self):
+        # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
+
+        # Es necesario obtener la categoria como diccionario
+        categoria = self.categoria.get_categoria_as_dict()
+
+        # Los posibles valores no serializables como Decimales, hay que convertirlos a string
+        if self.precio_antes:
+            self.precio_antes = str(self.precio_antes)
+        if self.precio_final:
+            self.precio_final = str(self.precio_final)
+        if self.ahorro_euros:
+            self.ahorro_euros = str(self.ahorro_euros)
+        if self.ahorro_porciento:
+            self.ahorro_porciento = str(self.ahorro_porciento)
+        if self.evaluacion:
+            self.evaluacion = str(self.evaluacion)
+        if self.fecha_registro:
+            self.fecha_registro = str(self.fecha_registro)
+
+        producto_dict = {
+            'nombre': self.nombre,
+            'nombre_corto': self.nombre_corto,
+            'url_amigable': self.url_amigable,
+            'precio_antes': self.precio_antes,
+            'precio_final': self.precio_final,
+            'ahorro_euros': self.ahorro_euros,
+            'ahorro_porciento': self.ahorro_porciento,
+            'categoria': categoria,
+            'url_afiliado': self.url_afiliado,
+            'url_imagen_principal': self.url_imagen_principal,
+            'asin': self.asin,
+            'opiniones': self.opiniones,
+            'evaluacion': self.evaluacion,
+            'fecha_registro': self.fecha_registro,
+        }
+        return producto_dict
+
+    @classmethod
+    def get_productos_as_dict(cls):
+        # Devuelve una lista de todos los productos en forma de diccionarios
+        productos_dict = []
+        for producto in cls.objects.all():
+            productos_dict.append(producto.get_producto_as_dict())
+        return productos_dict
+
 
     @classmethod
     def sincronizar_productos(cls):
