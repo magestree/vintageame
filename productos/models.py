@@ -231,20 +231,24 @@ class Producto(models.Model):
         # Entornos a sincronizar: Preproducción y Producción
         # API_URLS = ['https://prepro.productos-vintage.com/api/']
         for api_url in API_URLS:
+            print('Sincronizando productos en: %s' %api_url)
             productos_url_amigables = []
             for producto_dict in Producto.get_productos_as_dict():
                 productos_url_amigables.append(producto_dict.get('url_amigable'))
                 r = cls.add_remote_product(api_url, producto_dict)
                 print(r.text, r.status_code)
-                time.sleep(5)
+                time.sleep(1)
+            cls.delete_remote_products(productos_url_amigables, api_url)
 
-            # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
-            # Ahora necesitamos comprobar si hay registros en remoto que deben ser eliminados porque no constan en los registros a sincronizar
-            for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
-                if producto_dict.get('url_amigable') not in productos_url_amigables:
-                    r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
-                    print(r.text, r.status_code)
-                    time.sleep(5)
+    @classmethod
+    def delete_remote_products(cls, productos_url_amigables, api_url):
+        # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
+        # Ahora necesitamos comprobar si hay registros en remoto que deben ser eliminados porque no constan en los registros a sincronizar
+        for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
+            if producto_dict.get('url_amigable') not in productos_url_amigables:
+                r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
+                print(r.text, r.status_code)
+                time.sleep(1)
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
@@ -296,14 +300,16 @@ class Producto(models.Model):
     @classmethod
     def sincronizar_productos(cls):
         # Se sincronizan los productos a partir de las urls en support.url_productos
+        detectados = []
         for url_producto in urls_productos:
             print('Sincronizando %s' %url_producto)
             done = cls.sincronizar_producto_from_url(url_producto)
-            if done == 'banned':
+            if done == 'detectado':
+                detectados.append(url_producto)
+                break
+            if done == 'banned' or done == 'not_found':
                 # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
                 break
-
-            # wait = randint(19, 20)
             wait = 19
 
             # Esperando para no estresar a Amazon
@@ -316,6 +322,23 @@ class Producto(models.Model):
         for producto in Producto.objects.all():
             producto.verificar_producto()
 
+        # Una vez hemos terminado con la lista de productos a añadir, lo seguimos intentando con aquellos a los que no se pudo acceder
+        # porque Amazon detectó el acceso automático
+        for detectado in detectados:
+            print('Sincronizando %s' % detectado)
+            done = cls.sincronizar_producto_from_url(detectado)
+            if done == 'banned' or done == 'not_found' or done == 'detectado':
+                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
+                break
+            wait = 19
+
+            # Esperando para no estresar a Amazon
+            print('Esperando %s segundos antes de sincronizar el próximo producto...' % wait)
+            print('')
+
+            time.sleep(wait)
+
+
     @classmethod
     def get_edge_prices(cls, productos):
         # Devuelve el precio mínimo y máximo de todos los productos de un conjunto
@@ -327,8 +350,8 @@ class Producto(models.Model):
 
     def verificar_producto(self):
         # Las pruebas a las que se somete un producto son:
-        # 1 - Que tenga un nombre, una categoría y una foto de 320 x 320
-        if self.nombre and self.categoria and self.foto_320_320:
+        # 1 - Que tenga un nombre, una categoría y una foto
+        if self.nombre and self.categoria and self.url_imagen_principal:
             return True
         else:
             self.eliminar_producto()
@@ -612,12 +635,18 @@ class Producto(models.Model):
 
                 elif response.status_code == 404:
                     print('Amazon ha respondido un código 404, abandonamos el  producto')
-                    break
+                    return 'not_found'
                 elif response.status_code == 503:
                     print('Amazon ha baneado nuestra IP. Hay que esperar e intentarlo otro día')
-                    break
+                    return 'banned'
+
                 else:
                     print('Hemos obtenido un código %s por parte de Amazon, es imposible procesar la petición' %response.status_code)
+
+            if attempt == 19:
+                return 'detectado'
+            # Se llega aqui solo luego de 20 intentos fallidos de acceso, si Amazon detecta el acceso automático
+
 
         except Exception as e:
         # else:
