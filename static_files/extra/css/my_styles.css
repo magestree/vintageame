@@ -55,6 +55,7 @@
     /*src: url('../../extra/fonts/Variane Script.ttf');*/
     /*src: url('../../extra/fonts/Bohem Press Free.ttf');*/
     /*src: url('../../extra/fonts/PrequelDemo-Regular.ttf');*/
+    font-display: auto;
     src: url('../../extra/fonts/Blenda Script.otf');
 }
 

@@ -1,8 +1,9 @@
+{% load staticfiles %}
 <div class="one-third column portfolio-item">
     <figure>
         <div class="portfolio-holder">
             <a href="{% url 'productos:categoria' categoria.url_amigable %}">
-                <img alt="Productos vintage de {{ categoria.nombre }}" src="{{ categoria.producto_set.all.first.url_imagen_principal }}"/>
+                <img class="lozad" src="{% static 'extra/images/background_default.png' %}" data-src = "{{ categoria.producto_set.all.first.url_imagen_principal }}" alt = 'Productos vintage de {{ categoria.nombre }}'/>
                 <div class="hover-cover"></div>
                 <div class="hover-icon"></div>
             </a>
