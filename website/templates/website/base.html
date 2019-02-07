@@ -53,6 +53,15 @@
         <script src="{% static "scripts/puregrid.js" %}"></script>
         <script src="{% static "scripts/stacktable.js" %}"></script>
         <script src="{% static "scripts/custom.js" %}"></script>
+
+       <script src = "https://cdn.jsdelivr.net/npm/lozad"></script>
+        <!-- IntersectionObserver polyfill -->
+        <script type="text/plain" src="https://raw.githubusercontent.com/w3c/IntersectionObserver/master/polyfill/intersection-observer.js"></script>
+        <script>
+            observer = lozad(); // lazy loads elements with default selector as '.lozad'
+            observer.observe();
+        </script>
+
         {% block custom_js %}{% endblock custom_js %}
     </body>
 </html>
