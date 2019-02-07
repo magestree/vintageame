@@ -3,6 +3,12 @@ from django.http import Http404
 from productos.models import Producto, Categoria
 import json
 from decimal import Decimal
+from support.globals import GOOGLE_SITE_VERIFICATION
+
+def global_data(request):
+    return {
+        'GOOGLE_SITE_VERIFICATION': GOOGLE_SITE_VERIFICATION,
+    }
 
 def categoria(request, url_amigable):
     # Se obtiene la Categoría de esta vista y el resto de categorías para el menú
@@ -75,6 +81,7 @@ def categoria(request, url_amigable):
         # 'precio_maximo': precio_maximo,
     }
 
+    context.update(global_data(request))
     return render(request, 'productos/productos.html', context)
 
 def get_edge_prices(request, categoria_id):

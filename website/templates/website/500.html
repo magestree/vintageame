@@ -1,10 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'website/base.html' %}
+{% block tab_title %}Error nuestro (500){% endblock tab_title %}
+{% block meta %}{% endblock meta %}
+{% block content %}
+    {% include 'website/includes/title_bar.html' with page_title='¡Algo ha ido mal de nuestro lado!' %}<br>
+    <!-- Container -->
+    <div class="container">
+        <!-- Container -->
+        <div class="container">
 
-</body>
-</html>
+            <div class="sixteen columns">
+                <section id="not-found">
+                    <h2>500 <i class="fa fa-ban"></i></h2>
+                    <p>Por favor, escríbenos a contact@productos-vintage.com y cuéntanos qué ha pasado</p>
+                </section>
+            </div>
+
+        </div>
+        <!-- Container / End -->
+
+        <div class="margin-top-50"></div>
+    </div>
+{% endblock %}
