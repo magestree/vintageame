@@ -2,13 +2,13 @@
 {% load staticfiles %}
 {% block tab_title %}{% endblock tab_title %}
 {% block meta %}
-    <meta name="description" content = "Productos vintage de {{ categoria.nombre }}.">
-    <meta name="keywords" content = "{{ categoria }} vintage, productos vintage {{ categoria.nombre }}, vintage {{ categoria.nombre }}">
+    <meta name = 'description' content = 'Productos vintage de {{ categoria.nombre }}'>
+    <meta name = 'keywords' content = '{{ categoria }} vintage, productos vintage {{ categoria.nombre }}, vintage {{ categoria.nombre }}'>
+    <link rel = 'image_src' href = '{{ categoria.producto_set.all.first.url_imagen_principal }}'/>
+    <link rel = 'canonical' href = '{% url 'website:index' %}'>
 {% endblock meta %}
-
 {% block content %}
-    {% block page_title %}{% endblock page_title %}
-    <br>
+    {% block page_title %}{% endblock page_title %}<br>{{ request.session.url }}
     <div class="container">
         <div class="sixteen columns">
             {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}
@@ -21,7 +21,6 @@
         {% block productos %}{% endblock productos %}
     </div>
 {% endblock content %}
-
 {% block custom_js %}
     <script src="{% static 'extra/scripts/categoria.js' %}"></script>
     <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>

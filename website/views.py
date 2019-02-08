@@ -1,6 +1,5 @@
 from django.shortcuts import render
-from decimal import Decimal
-from productos.models import Producto, Categoria
+from productos.models import Categoria
 from productos.views import global_data
 
 def index(request):

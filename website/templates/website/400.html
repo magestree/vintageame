@@ -1,8 +1,8 @@
 {% extends 'website/base.html' %}{% load staticfiles %}
-{% block tab_title %}No encontrado (404){% endblock tab_title %}
+{% block tab_title %}Bad request (400){% endblock tab_title %}
 {% block meta %}{% endblock meta %}
 {% block content %}
-    {% include 'website/includes/title_bar.html' with page_title='No hemos encontrado lo que buscas' %}<br>
+    {% include 'website/includes/title_bar.html' with page_title='Algo ha ido muy mal' %}<br>
     <!-- Container -->
     <div class="container">
         <!-- Container -->
@@ -10,8 +10,8 @@
 
             <div class="sixteen columns">
                 <section id="not-found">
-                    <h2>404 <i class="fa fa-question-circle"></i></h2>
-                    <p>Ups! Lo sentimos, parece que te has perdido.</p>
+                    <h2>400 <i class="fa fa-exclamation-circle"></i></h2>
+                    <p>Ups! Lo sentimos, parece que no puedes acceder a este contenido.</p>
                     <a href = '{% url 'website:index' %}'>Inténtalo de nuevo :)</a>
                 </section>
             </div>
