@@ -4,7 +4,7 @@
         <div class="portfolio-holder">
             <a href="{% url 'productos:categoria' categoria.url_amigable %}">
 {#                <img class="lozad" src="{% static 'extra/images/background_default.png' %}" data-src = "{{ categoria.producto_set.all.first.url_imagen_principal }}" width="200px" height="400px" alt = 'Productos vintage de {{ categoria.nombre }}'/>#}
-                <img src = "{{ categoria.producto_set.all.first.url_imagen_principal }}" alt = 'Productos vintage de {{ categoria.nombre }}'/>
+                <img src = "{{ categoria.producto_set.all.first.url_imagen_principal }}" title = '{{ categoria.nombre }}' alt = 'Productos vintage de {{ categoria.nombre }}'/>
                 <div class="hover-cover"></div>
                 <div class="hover-icon"></div>
             </a>
