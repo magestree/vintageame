@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse
 from django.http import Http404
 from productos.models import Producto, Categoria
-from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO
+from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO, GOOGLE_ANALYTICS
 from decimal import Decimal
 import json
 
@@ -9,6 +9,7 @@ import json
 def global_data(request):
     return {
         'GOOGLE_SITE_VERIFICATION': GOOGLE_SITE_VERIFICATION,
+        'GOOGLE_ANALYTICS': GOOGLE_ANALYTICS,
         'ENTORNO': ENTORNO,
     }
 
