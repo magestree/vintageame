@@ -45,6 +45,24 @@
         <script src = "{% static "scripts/puregrid.js" %}"></script>
         <script src = "{% static "scripts/stacktable.js" %}"></script>
         <script src = "{% static "scripts/custom.js" %}"></script>
+        <script type="application/ld+json">
+            {
+             "@context" : "http://schema.org",
+             "@type" : "Organization",
+             "name" : "Productos Vintage",
+             "url" : "https://www.productos-vintage.com",
+             "sameAs" : [
+               "https://www.facebook.com/Productos-Vintage-325876964715650",
+              ],
+             "address": {
+               "@type": "PostalAddress",
+               "streetAddress": "Calle del Toboso 112",
+               "addressRegion": "MA",
+               "postalCode": "28019",
+               "addressCountry": "ES"
+             }
+            }
+        </script>
         {% block custom_js %}{% endblock custom_js %}
     </body>
 </html>
