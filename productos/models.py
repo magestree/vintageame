@@ -104,7 +104,7 @@ class Categoria(models.Model):
             print('Ya existe una categoría con nombre %s así que no podemos crearla' %nombre)
             return None
 
-    def modificar_categoria(self, url_amigable, descripcion):
+    def modificar_categoria(self, descripcion):
         if self.descripcion != descripcion:
             self.descripcion = descripcion
         self.save()
