@@ -1,10 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'website/base.html' %}{% load staticfiles %}
+{% block tab_title %}Prohibido (403){% endblock tab_title %}
+{% block meta %}{% endblock meta %}
+{% block content %}
+    {% include 'website/includes/title_bar.html' with page_title='No podemos mostrarte lo que buscas' %}<br>
+    <!-- Container -->
+    <div class="container">
+        <!-- Container -->
+        <div class="container">
 
-</body>
-</html>
+            <div class="sixteen columns">
+                <section id="not-found">
+                    <h2>403 <i class="fa fa-exclamation-circle"></i></h2>
+                    <p>Ups! Lo sentimos, parece que no puedes acceder a este contenido.</p>
+                    <a href = '{% url 'website:index' %}'>Inténtalo de nuevo :)</a>
+                </section>
+            </div>
+
+        </div>
+        <!-- Container / End -->
+
+        <div class="margin-top-50"></div>
+    </div>
+{% endblock %}

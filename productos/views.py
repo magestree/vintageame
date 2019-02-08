@@ -1,13 +1,15 @@
 from django.shortcuts import render, HttpResponse
 from django.http import Http404
 from productos.models import Producto, Categoria
-import json
+from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO
 from decimal import Decimal
-from support.globals import GOOGLE_SITE_VERIFICATION
+import json
 
+# Estas son variables adicionales que deben pasarse a TODOS los templates
 def global_data(request):
     return {
         'GOOGLE_SITE_VERIFICATION': GOOGLE_SITE_VERIFICATION,
+        'ENTORNO': ENTORNO,
     }
 
 def categoria(request, url_amigable):

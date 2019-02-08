@@ -1,66 +1,54 @@
 <!DOCTYPE html>{% load staticfiles %}
-<html lang="en">
+<html lang = 'es'>
     <head>
-        <meta charset="utf-8">
+        <meta charset = 'utf-8'>
+        {% if ENTORNO == 'preproduccion' %}<meta name = 'robots' content = 'noindex, nofollow'>{% endif %}
         <title>Productos Vintage | {% block tab_title %}{% endblock tab_title %}</title>
         {% block meta %}{% endblock meta %}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}" />
-        <link rel="shortcut icon" type = "image/x-icon" href='{% static 'extra/images/favicon.jpg' %}'>
+        <meta name = 'viewport' content = 'width=device-width, initial-scale=1, maximum-scale=1'>
+        <meta name = 'google-site-verification' content = '{{ GOOGLE_SITE_VERIFICATION }}' />
+        <link rel = 'shortcut icon' type = 'image/x-icon' href='{% static 'extra/images/favicon.jpg' %}'>
+        <link rel = 'stylesheet' href = '{% static 'css/style.css' %}'>
         {% block custom_css %}{% endblock custom_css %}
     </head>
-    <body class="boxed">
-        <div id="wrapper">
-            <div class="clearfix"></div>
-            <div class="container">
-                <div class="four columns">
-                    {% include 'website/includes/logo.html' %}
+    <body class = 'boxed'>
+        <div id = 'wrapper'>
+            <div class = 'clearfix'></div>
+            <div class = 'container'>
+                <div class = 'four columns'>
+                {% include 'website/includes/logo.html' %}
                 </div>
             </div>
             {% block content %}{% endblock content %}
-            <div class="margin-top-15"></div>
-{#            {% include 'website/includes/footer.html' %}#}
+            <div class = 'margin-top-15'></div>
             {% include 'website/includes/footer_bottom.html' %}
-            <div id="backtotop"><a href="#"></a></div>
+            <div id = 'backtotop'><a href = '#'></a></div>
         </div>
-
-        <!-- Colocando aquí los estilos para que no bloquee el renderizado -->
-        <link rel="stylesheet" href="{% static 'css/style.css' %}">
-        <link rel="stylesheet" href="{% static 'css/colors/green.css' %}" id = "colors">
-        <link rel="stylesheet" href="{% static 'extra/css/my_styles.css' %}" id = "colors">
-
-        <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-        <script src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-        <script src="{% static "scripts/jquery.jpanelmenu.js" %}"></script>
-        <script src="{% static "scripts/jquery.themepunch.plugins.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.themepunch.revolution.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.themepunch.showbizpro.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.magnific-popup.min.js" %}"></script>
-        <script src="{% static "scripts/hoverIntent.js" %}"></script>
-        <script src="{% static "scripts/superfish.js" %}"></script>
-        <script src="{% static "scripts/jquery.pureparallax.js" %}"></script>
-        <script src="{% static "scripts/jquery.pricefilter.js" %}"></script>
-        <script src="{% static "scripts/jquery.selectric.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.royalslider.min.js" %}"></script>
-        <script src="{% static "scripts/SelectBox.js" %}"></script>
-        <script src="{% static "scripts/modernizr.custom.js" %}"></script>
-        <script src="{% static "scripts/waypoints.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.flexslider-min.js" %}"></script>
-        <script src="{% static "scripts/jquery.counterup.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.tooltips.min.js" %}"></script>
-        <script src="{% static "scripts/jquery.isotope.min.js" %}"></script>
-        <script src="{% static "scripts/puregrid.js" %}"></script>
-        <script src="{% static "scripts/stacktable.js" %}"></script>
-        <script src="{% static "scripts/custom.js" %}"></script>
-
-       <script src = "https://cdn.jsdelivr.net/npm/lozad"></script>
-        <!-- IntersectionObserver polyfill -->
-        <script type="text/plain" src="https://raw.githubusercontent.com/w3c/IntersectionObserver/master/polyfill/intersection-observer.js"></script>
-        <script>
-            observer = lozad(); // lazy loads elements with default selector as '.lozad'
-            observer.observe();
-        </script>
-
+        <link rel = "stylesheet" href="{% static 'css/colors/green.css' %}" id = "colors">
+        <link rel = "stylesheet" href="{% static 'extra/css/my_styles.css' %}" id = "colors">
+        <script src = "https://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src = "https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        <script src = "{% static "scripts/jquery.jpanelmenu.js" %}"></script>
+        <script src = "{% static "scripts/jquery.themepunch.plugins.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.themepunch.revolution.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.themepunch.showbizpro.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.magnific-popup.min.js" %}"></script>
+        <script src = "{% static "scripts/hoverIntent.js" %}"></script>
+        <script src = "{% static "scripts/superfish.js" %}"></script>
+        <script src = "{% static "scripts/jquery.pureparallax.js" %}"></script>
+        <script src = "{% static "scripts/jquery.pricefilter.js" %}"></script>
+        <script src = "{% static "scripts/jquery.selectric.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.royalslider.min.js" %}"></script>
+        <script src = "{% static "scripts/SelectBox.js" %}"></script>
+        <script src = "{% static "scripts/modernizr.custom.js" %}"></script>
+        <script src = "{% static "scripts/waypoints.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.flexslider-min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.counterup.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.tooltips.min.js" %}"></script>
+        <script src = "{% static "scripts/jquery.isotope.min.js" %}"></script>
+        <script src = "{% static "scripts/puregrid.js" %}"></script>
+        <script src = "{% static "scripts/stacktable.js" %}"></script>
+        <script src = "{% static "scripts/custom.js" %}"></script>
         {% block custom_js %}{% endblock custom_js %}
     </body>
 </html>
