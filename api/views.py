@@ -74,7 +74,6 @@ def add_producto(request):
         if Categoria.objects.filter(url_amigable = categoria.get('url_amigable')):
             existent_categoria = Categoria.objects.get(url_amigable = categoria.get('url_amigable'))
             existent_categoria.modificar_categoria(
-                nombre = categoria.get('nombre'),
                 descripcion = categoria.get('descripcion'),
             )
             categoria = existent_categoria
