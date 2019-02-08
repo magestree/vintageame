@@ -11,8 +11,7 @@
     {% block page_title %}{% endblock page_title %}<br>{{ request.session.url }}
     <div class="container">
         <div class="sixteen columns">
-            {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}
-            <br>
+            {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}<br>
         </div>
         <div class="four columns">
             {% include 'website/includes/sidebar/categories.html' %}
@@ -25,4 +24,3 @@
     <script src="{% static 'extra/scripts/categoria.js' %}"></script>
     <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>
 {% endblock custom_js %}
-
