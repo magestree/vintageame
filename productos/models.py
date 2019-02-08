@@ -2,16 +2,12 @@ from django.db import models
 from support.urls_productos import urls_productos
 from support.descripciones_categorias import categorias
 from support.globals import API_URLS
-import requests, time, json
-from random import randint
+import requests, time, json, shutil
 import urllib3, os, shutil, math
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from django.core import files
-from io import BytesIO
-from support.globals import crop_from_center
 from support import methods
-from django.conf import settings
 from django.template.defaultfilters import slugify
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # FOTOS DE PRODUCTOS
 def productos_photos_directory(instance, filename):
@@ -108,17 +104,11 @@ class Categoria(models.Model):
             print('Ya existe una categoría con nombre %s así que no podemos crearla' %nombre)
             return None
 
-    def modificar_categoria(self, nombre, descripcion):
-        if not Categoria.objects.filter(nombre = nombre):
-            if self.nombre != nombre:
-                self.nombre = nombre
-                self.url_amigable = slugify(nombre)
-            if self.descripcion != descripcion:
-                self.descripcion = descripcion
-            self.save()
-            return self
-        else:
-            return None
+    def modificar_categoria(self, url_amigable, descripcion):
+        if self.descripcion != descripcion:
+            self.descripcion = descripcion
+        self.save()
+        return self
 
     def eliminar_categoria(self):
         # Antes de eliminar una categoría, se eliminan todos los productos relacionados con esta
@@ -201,6 +191,16 @@ class Producto(models.Model):
     opiniones = models.IntegerField('Opiniones', blank = True, null = True, unique = False)
     evaluacion = models.DecimalField('Evaluación',  max_digits = 3, decimal_places = 2, blank = True, null = True, unique = False)
     fecha_registro = models.DateTimeField('Fecha de registro', blank = True, null = True, auto_now_add = True)
+
+    @classmethod
+    def download_products_images(cls):
+        for url in cls.objects.values_list('url_imagen_principal', flat=True):
+            r = requests.get(url, stream=True)
+            if r.status_code == 200:
+                with open('/var/www/imagenes_productos/%s' %url.split('/')[-1], 'wb') as f:
+                    r.raw.decode_content = True
+                    shutil.copyfileobj(r.raw, f)
+            time.sleep(2)
 
     @classmethod
     def add_remote_product(cls, api_url, producto_dict):
