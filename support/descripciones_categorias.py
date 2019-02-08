@@ -17,7 +17,7 @@ categorias = [
     },
     {
         'nombre': 'Iluminación',
-        'descripcion': '',
+        'descripcion': 'Cambia la ilumación de tu hogar o local con un estilo totalmente vintage. Distínguete del resto y dale fuerza a tu marca o al estilo de tu hogar con estos productos de iluminación que hemos clasificado para ti.',
     },
     {
         'nombre': 'Joyería',
@@ -33,7 +33,7 @@ categorias = [
     },
     {
         'nombre': 'Deportes y aire libre',
-        'descripcion': '',
+        'descripcion': 'Ya sea para precticar deportes, hacer senderismo, o viajar... nada tiene por qué hacerse sin que puedas contar con los accesorios adecuados. En nuestra colección de productos vintage, hemos encontrado esta categoría para agrupar artículos que puedas usar al aire libre o mientras practicas deportes. Esperamos que encuentres lo que buscas...',
     },
     {
         'nombre': 'Oficina y papelería',
@@ -57,11 +57,11 @@ categorias = [
     },
     {
         'nombre': 'Jardín',
-        'descripcion': '',
+        'descripcion': 'El vintage está presente en todo, y también por supuesto, en nuestros huertos y jardines. ¿Quién ha dicho que para trabajar la tierra no es mejor utilizar las herramientas y los accesorios con los que más nos identificamos? Esperamos que nuestra selección de productos vintaje para jardín sea lo que necesitas.',
     },
     {
         'nombre': 'Coche y moto',
-        'descripcion': '',
+        'descripcion': '¡A que molan las imágenes de motoristas en sus Harley Davidson con sus cazadoras de cuero negro! Si eres amante del vintage como nosotros, aquí podrás encontrar artículos que te sirvan o bien para tu viaje, o para decorar tu coche o moto. Míralo por ti mismo',
     },
     {
         'nombre': 'Equipaje',
@@ -73,6 +73,6 @@ categorias = [
     },
     {
         'nombre': 'Productos para mascotas',
-        'descripcion': '',
+        'descripcion': 'Dicen que nuestras mascotas suelen parecerse a nosotros. Si eres parte de esta hermosa familia del vintage y tienes mascota, probablemente no te lo diga, pero le molarán estos productos tanto como a ti. ',
     },
 ]

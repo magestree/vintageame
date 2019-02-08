@@ -9,6 +9,7 @@
     {% include 'website/includes/title_bar.html' with page_title='Productos Vintage' %}<br>
     <div class="container">
         {% include 'website/includes/page_description_header.html' with text='Bienvenido a la Tienda Online Definitiva de Productos Vintage. Si has llegado aquí no es por casualidad, sino porque eres uno de los nuestros. Como nosotros sabes valorar lo que no pasa de moda, y lo que te destaca por sobre la mayoría es sin dudas, el buen gusto y el amor por lo clásico.' %}<br>
+        <h1 class = 'font-vintage justify' style="text-align: center"><u>Categorías</u></h1><br>
         <div id="portfolio-wrapper">
             {% for categoria in categorias %}
                 {% include 'productos/includes/categoria.html' %}
@@ -17,16 +18,16 @@
     </div>
     <div class="container">
         <h3 class = 'font-vintage justify' style="text-indent: 40px;">
-            En nuestra tienda online de productos vintage, nos esforzamos por mantener actualizado a diario un stock ordenado de los productos que mas pueden interesarte. Los clasificamos por categorias y dentro de cada
-            una, estos pueden ser ordenados segun varios criterios: descuentos, mas vendidos, mejor valorados, o simplemente puedes verlos todos para que elijas los que mas te gusten y necesites.
+            En nuestra tienda online de productos vintage, nos esforzamos por mantener actualizado a diario un stock ordenado de los productos que mas pueden interesarte. Los clasificamos por categorías y dentro de cada
+            una, estos pueden ser ordenados segun el precio o priorizar productos con asombrosos descuentos.
         </h3><p></p>
         <h3 class = 'font-vintage justify' style="text-indent: 40px;">
-            Nuestra tienda online trabaja en colaboracion con Amazon Markets, de modo que todos los productos que vendemos pertenecen a proveedores debidamente validados en el mercado. Ademas, puedes ver las evaluaciones
-            y el promedio de puntuacion que estos proveedores han recibido de otros clientes amantes del vintage como tu. Si quieres ganar tiempo, ahorrar con fantasticos descuentos, y adquirir todo aquello vintage que amas,
-            no lo dudes... estas en el lugar correcto.
+            Nuestra tienda online trabaja en colaboracion con Amazon Markets, de modo que todos los productos que vendemos pertenecen a proveedores debidamente validados en el mercado. Además, puedes ver las evaluaciones
+            y el promedio de puntuación que estos proveedores han recibido de otros clientes amantes del vintage como tú. Si quieres ganar tiempo, ahorrar con fantásticos descuentos, y adquirir todo aquello vintage que amas,
+            no lo dudes entonces... estás en el lugar correcto.
         </h3><br>
     </div>
 {% endblock content %}
-{% block custom_js %}
-    <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>
-{% endblock custom_js %}
+{#{% block custom_js %}#}
+{#    <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>#}
+{#{% endblock custom_js %}#}

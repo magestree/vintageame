@@ -11,12 +11,11 @@ def parse_url_imagen_principal(html):
             bloque2 = bloque1.split('data-old-hires="')[1]
             if '"' in bloque2:
                 url_imagen_principal = bloque2.split('"')[0]
-                if len(
-                        url_imagen_principal) > 20 and 'https://' in url_imagen_principal and '.jpg' in url_imagen_principal:
+                if len(url_imagen_principal) > 20 and 'https://' in url_imagen_principal and '.jpg' in url_imagen_principal:
                     detalles_imagenes['url_imagen_principal'] = url_imagen_principal
                     print('Se ha obtenido la url_imagen_principal: %s' % url_imagen_principal)
                 else:
-                    print('El formato de la URL (%s) es incorrecto' % url_imagen_principal)
+                    print('El formato de la URL (%s) es incorrecto' %url_imagen_principal)
             else:
                 print('No se ha encontrado " en el código html buscado')
 
