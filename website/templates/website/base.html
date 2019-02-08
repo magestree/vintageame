@@ -14,11 +14,7 @@
     <body class = 'boxed'>
         <div id = 'wrapper'>
             <div class = 'clearfix'></div>
-            <div class = 'container'>
-                <div class = 'four columns'>
-                {% include 'website/includes/logo.html' %}
-                </div>
-            </div>
+            <div class = 'container'><div class = 'four columns'>{% include 'website/includes/logo.html' %}</div></div>
             {% block content %}{% endblock content %}
             <div class = 'margin-top-15'></div>
             {% include 'website/includes/footer_bottom.html' %}

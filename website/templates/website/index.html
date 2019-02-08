@@ -2,31 +2,24 @@
 {% block tab_title %}Inicio{% endblock tab_title %}
 {% block meta %}
     <meta name="description" content = "Tienda Online de Productos Vintage. El sitio creado especialmente para los que saben valorar lo que no pasa de moda. Somos amantes del buen gusto y el amor por lo clásico.">
-    <meta name="keywords" content = "productos vintage, articulos vintage, vintage, ">
+    <meta name="keywords" content = "productos vintage, articulos vintage, vintage">
     <link rel="image_src" href = "{% static 'extra/images/productos vintage.jpg' %}"/>
 {% endblock meta %}
-
 {% block content %}
     {% include 'website/includes/title_bar.html' with page_title='Productos Vintage' %}<br>
-    <!-- Container -->
     <div class="container">
-        {% include 'website/includes/page_description_header.html' with text='Bienvenido a la Tienda Online Definitiva de Productos Vintage. Si has llegado aquí no es por casualidad, sino porque eres uno de los nuestros. Como nosotros sabes valorar lo que no pasa de moda, y lo que te destaca por sobre la mayoría es sin dudas, el buen gusto y el amor por lo clásico.' %}
-        <br>
-        <!-- Portfolio Wrapper-->
+        {% include 'website/includes/page_description_header.html' with text='Bienvenido a la Tienda Online Definitiva de Productos Vintage. Si has llegado aquí no es por casualidad, sino porque eres uno de los nuestros. Como nosotros sabes valorar lo que no pasa de moda, y lo que te destaca por sobre la mayoría es sin dudas, el buen gusto y el amor por lo clásico.' %}<br>
         <div id="portfolio-wrapper">
             {% for categoria in categorias %}
-                <!-- Portfolio Item -->
                 {% include 'productos/includes/categoria.html' %}
             {% endfor %}
-        </div>
-        <br><!-- Portfolio Wrapper / End -->
+        </div><br>
     </div>
     <div class="container">
         <h3 class = 'font-vintage justify' style="text-indent: 40px;">
             En nuestra tienda online de productos vintage, nos esforzamos por mantener actualizado a diario un stock ordenado de los productos que mas pueden interesarte. Los clasificamos por categorias y dentro de cada
             una, estos pueden ser ordenados segun varios criterios: descuentos, mas vendidos, mejor valorados, o simplemente puedes verlos todos para que elijas los que mas te gusten y necesites.
-        </h3>
-        <p></p>
+        </h3><p></p>
         <h3 class = 'font-vintage justify' style="text-indent: 40px;">
             Nuestra tienda online trabaja en colaboracion con Amazon Markets, de modo que todos los productos que vendemos pertenecen a proveedores debidamente validados en el mercado. Ademas, puedes ver las evaluaciones
             y el promedio de puntuacion que estos proveedores han recibido de otros clientes amantes del vintage como tu. Si quieres ganar tiempo, ahorrar con fantasticos descuentos, y adquirir todo aquello vintage que amas,
