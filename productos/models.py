@@ -2,7 +2,7 @@ from django.db import models
 from support.urls_productos import urls_productos
 from support.descripciones_categorias import categorias
 from support.globals import API_URLS
-import requests, time, json, shutil
+import requests, time, json, shutil, random
 import urllib3, os, shutil, math
 from support import methods
 from django.template.defaultfilters import slugify
@@ -230,6 +230,11 @@ class Producto(models.Model):
     def sync_remote_products(cls):
         # Entornos a sincronizar: Preproducción y Producción
         # API_URLS = ['https://prepro.productos-vintage.com/api/']
+
+        # Primero se actualizan las Categorías, por si hay alguna a la que añadirle la descripción
+        Categoria.actualizar_descripciones_categorias()
+
+        # Con las descripciones de las Categorías actualizadas, se pasa a sincronizar todos los Productos de las versiones remotas
         for api_url in API_URLS:
             print('Sincronizando productos en: %s' %api_url)
             productos_url_amigables = []
@@ -306,7 +311,7 @@ class Producto(models.Model):
     def sincronizar_productos(cls):
         # Se sincronizan los productos a partir de las urls en support.url_productos
         detectados = []
-        for url_producto in urls_productos:
+        for url_producto in random.sample(urls_productos, len(urls_productos)):
             print('Sincronizando %s' %url_producto)
             done = cls.sincronizar_producto_from_url(url_producto)
             if done == 'detectado':
@@ -342,6 +347,9 @@ class Producto(models.Model):
             print('')
 
             time.sleep(wait)
+
+        # Una vez terminamos de sincronizar los productos con Amazon, actualizamos los productos en los sitios de producción y preproducción
+        cls.sync_remote_products()
 
 
     @classmethod
@@ -548,9 +556,9 @@ class Producto(models.Model):
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
 
         try:
-            # Se realizan hasta 20 intentos de recuperación de información por producto,
+            # Se realizan hasta 30 intentos de recuperación de información por producto,
             # por si Amazon detecta una y otra vez un acceso automatizado
-            for attempt in range(20):
+            for attempt in range(30):
                 print('Iniciando intento %s de obtención de datos...' %attempt)
                 # Se realiza una petición GET a la url del producto en Amazon
                 response = requests.get(url_producto, headers = headers, verify = False)
@@ -565,8 +573,9 @@ class Producto(models.Model):
                         # Una vez tenemos el código HTML, se comprueba si contiene la información deseada, o Amazon ha
                         # detectado nuestro acceso automatizado
                         if 'For automated access to price change or offer listing change events' in html:
-                            print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en 18 segundos...')
-                            time.sleep(18)
+                            w = random.randint(10, 20)
+                            print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en %s segundos...' %w)
+                            time.sleep(w)
                             continue
 
                         # Si hemos superado la prueba anterior y Amazon nos ha devuelto información útil sobre el proyecto,
