@@ -22,7 +22,7 @@ def add_categoria(request):
         url_amigable = content.get('url_amigable')
         response['message'] = 'Se ha eliminado correctamente la categoría: "%s"' %url_amigable
 
-    return HttpResponse(json.dumps(response))
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
 
 @csrf_exempt
 def add_producto(request):
@@ -120,7 +120,7 @@ def add_producto(request):
     else:
         response['message'] = 'El método HTTP de la petición debe ser POST'
 
-    return HttpResponse(json.dumps(response))
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
 
 @csrf_exempt
 def get_productos(request):
@@ -142,7 +142,93 @@ def get_productos(request):
         response['message'] = 'El método HTTP de la petición debe ser GET'
         response['success'] = False
 
-    return HttpResponse(json.dumps(response))
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
+
+@csrf_exempt
+def get_producto(request):
+    response = {
+        'success': True,
+        'message': '',
+        'producto': None,
+    }
+
+    if request.method == 'GET':
+        if request.META['CONTENT_TYPE'] != 'application/json':
+            response['success'] = False,
+            response['message'] = 'El contenido debe ser json con header application/json'
+        else:
+            content = json.loads(request.body)
+            url_amigable = content.get('url_amigable')
+            if url_amigable:
+                producto = Producto.objects.filter(url_amigable = url_amigable).first()
+                if producto:
+                    response['producto'] = producto.get_producto_as_dict()
+                else:
+                    response['success'] = False
+                    response['message'] = 'No existe un Producto registrado con la url_amigable: "%s"' %url_amigable
+            else:
+                response['success'] = False
+                response['message'] = 'No se ha indicado un valor de url_amigable'
+    else:
+        response['success'] = False
+        response['message'] = 'El método HTTP de la petición debe ser GET'
+
+    # Sea cual sea el escenario se devuelve el resultado del procesamiento de la petición GET
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
+
+@csrf_exempt
+def get_categoria(request):
+    response = {
+        'success': True,
+        'message': '',
+        'categoria': None,
+    }
+
+    if request.method == 'GET':
+        if request.META['CONTENT_TYPE'] != 'application/json':
+            response['success'] = False,
+            response['message'] = 'El contenido debe ser json con header application/json'
+        else:
+            content = json.loads(request.body)
+            url_amigable = content.get('url_amigable')
+            if url_amigable:
+                categoria = Categoria.objects.filter(url_amigable = url_amigable).first()
+                if categoria:
+                    response['categoria'] = categoria.get_categoria_as_dict()
+                else:
+                    response['success'] = False
+                    response['message'] = 'No existe una Categoría registrada con la url_amigable: "%s"' %url_amigable
+            else:
+                response['success'] = False
+                response['message'] = 'No se ha indicado un valor de url_amigable'
+    else:
+        response['success'] = False
+        response['message'] = 'El método HTTP de la petición debe ser GET'
+
+    # Sea cual sea el escenario se devuelve el resultado del procesamiento de la petición GET
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
+
+@csrf_exempt
+def get_categorias(request):
+    response = {
+        'success': True,
+        'message': '',
+        'categorias': None,
+    }
+
+    if request.method == 'GET':
+        if request.META['CONTENT_TYPE'] != 'application/json':
+            response['success'] = False,
+            response['message'] = 'El contenido debe ser json con header application/json'
+            return HttpResponse(json.dumps(response), content_type = 'application/json')
+
+        response['categorias'] = Categoria.get_categorias_as_dict()
+
+    else:
+        response['message'] = 'El método HTTP de la petición debe ser GET'
+        response['success'] = False
+    print(response)
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
 
 @csrf_exempt
 def remove_producto(request, url_amigable):
@@ -155,6 +241,19 @@ def remove_producto(request, url_amigable):
     # producto.eliminar_producto()
     print('Se ha eliminado el producto %s' %producto)
 
-    return HttpResponse(json.dumps(response))
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
+
+@csrf_exempt
+def remove_categoria(request, url_amigable):
+    response = {
+        'success': True,
+        'message': '',
+    }
+
+    categoria = Categoria.objects.get(url_amigable = url_amigable)
+    # producto.eliminar_producto()
+    print('Se ha eliminado la categoria %s' %categoria)
+
+    return HttpResponse(json.dumps(response), content_type = 'application/json')
 
 

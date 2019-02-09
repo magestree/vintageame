@@ -1,3 +1,5 @@
 from django.contrib import admin
+from api.models import API_Client, App
 
-# Register your models here.
+admin.site.register(API_Client)
+admin.site.register(App)

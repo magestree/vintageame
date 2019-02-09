@@ -19,7 +19,7 @@ def add_producto():
     print(r.text, r.status_code)
 
 def get_productos():
-    url = '%sget/productos/' % URL_VINTAGEAME_DESARROLLO
+    url = '%sget/productos/' %URL_VINTAGEAME_DESARROLLO
     headers = {'Content-Type': 'application/json'}
 
     r = requests.get(
@@ -28,3 +28,36 @@ def get_productos():
     )
 
     print(r.text, r.status_code)
+    # print(json.loads(r.content).get('productos')[0].get('url_amigable'))
+
+def get_producto():
+    url = '%sget/producto/' %URL_VINTAGEAME_DESARROLLO
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        'url_amigable': 'lauson-cl146-tocadiscos-bluetooth-de-madera',
+    }
+
+    r = requests.get(
+        url = url,
+        headers = headers,
+        data = json.dumps(payload),
+    )
+
+    print(r.text, r.status_code)
+    print(json.loads(r.content).get('producto'))
+
+def get_categoria():
+    url = '%sget/categoria/' %URL_VINTAGEAME_DESARROLLO
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        'url_amigable': 'alimentacion-y-bebidas',
+    }
+
+    r = requests.get(
+        url = url,
+        headers = headers,
+        data = json.dumps(payload),
+    )
+
+    print(r.text, r.status_code)
+

@@ -6,6 +6,7 @@ import requests, time, json, shutil, random
 import urllib3, os, shutil, math
 from support import methods
 from django.template.defaultfilters import slugify
+from api.models import API_Client, App
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -42,6 +43,21 @@ class Categoria(models.Model):
     nombre_corto = models.CharField('Nombre cort', max_length = 40 ,blank = True, null = True)
     url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
     descripcion = models.TextField('Descripción', blank = True, null = True, max_length = 4096)
+
+    @classmethod
+    # Elimina todas las categorías que no tengan al menos un Producto asociado
+    def eliminar_categorias_sin_productos(cls):
+        for categoria in cls.objects.all():
+            if not categoria.producto_set.all():
+                categoria.eliminar_categoria()
+
+    @classmethod
+    def get_categorias_as_dict(cls):
+        # Devuelve una lista de todas las categorías en forma de diccionarios
+        categorias_dict = []
+        for categoria in cls.objects.all():
+            categorias_dict.append(categoria.get_categoria_as_dict())
+        return categorias_dict
 
     def get_categoria_as_dict(self):
         # Devuelve el objeto Categoria como un diccionario, listo para ser enviado vía REST
@@ -193,6 +209,48 @@ class Producto(models.Model):
     fecha_registro = models.DateTimeField('Fecha de registro', blank = True, null = True, auto_now_add = True)
 
     @classmethod
+    def sincronizar_productos(cls):
+        # Esta sincronización consta de dos partes fundamentales:
+        # 1 - Actualizar Productos y Categorías en la versión local a partir de Amazon
+        # 1.1 - Sincronizar productos desde Amazon a nuestra versión local
+        cls.sincronizar_productos_from_amazon()
+        # 1.2 - Eliminar aquellos productos de nuestra Base de Datos que no estén en la lista de referencia para sincronizar con Amazon
+        cls.eliminar_productos_excluidos(urls_productos = urls_productos)
+        # 1.3 - Actualizar las descripciones de las categorías y eliminar aquellas categorías que no tengan productos asociados
+        Categoria.actualizar_descripciones_categorias()
+        Categoria.eliminar_categorias_sin_productos()
+
+        # 2 - Actualizar las versiones de preproducción y producción del sitio a partir de los productos y categorías en nuestra versión de desarrollo
+        # 2.1 - Añadir/Modificar todos aquellos productos que tengamos en nuestra versión de desarrollo
+        cls.sync_remote_products()
+
+
+    @classmethod
+    # 1.1 - sincronizar productos from Amazon
+    def sincronizar_productos_from_amazon(cls):
+        # Se sincronizan los productos a partir de las urls en support.url_productos
+        for url_producto in random.sample(urls_productos, len(urls_productos)):
+            print('Sincronizando %s' % url_producto)
+            done = cls.sincronizar_producto_from_url(url_producto)
+            if done == 'banned' or done == 'not_found':
+                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
+                break
+            wait = random.randint(10, 20)
+            # Esperando para no estresar a Amazon
+            print('Esperando %s segundos antes de sincronizar el próximo producto...' % wait)
+            print('')
+            time.sleep(wait)
+
+    @classmethod
+    # 1.2 - Eliminar aquellos productos de nuestra Base de Datos que no estén en la lista de referencia para sincronizar con Amazon
+    def eliminar_productos_excluidos(cls, urls_productos):
+        for producto in cls.objects.all():
+            if not producto.url_afiliado in urls_productos:
+                producto.eliminar_producto()
+
+
+    @classmethod
+    # Descarga en un directorio del servidor todas las imágenes de los Productos en nuestra BD
     def download_products_images(cls):
         for url in cls.objects.values_list('url_imagen_principal', flat=True):
             r = requests.get(url, stream=True)
@@ -200,65 +258,24 @@ class Producto(models.Model):
                 with open('/var/www/imagenes_productos/%s' %url.split('/')[-1], 'wb') as f:
                     r.raw.decode_content = True
                     shutil.copyfileobj(r.raw, f)
-            time.sleep(2)
-
-    @classmethod
-    def add_remote_product(cls, api_url, producto_dict):
-        return requests.post(
-            url = '%sadd/producto/' %api_url,
-            headers = {'Content-Type': 'application/json'},
-            data = json.dumps(producto_dict),
-        )
-
-    @classmethod
-    def get_remote_products(cls, api_url):
-        return requests.get(
-            url = '%sget/productos/' %api_url,
-            headers = {'Content-Type': 'application/json'},
-        )
-
-    @classmethod
-    def remove_remote_product(cls, api_url, url_amigable):
-        headers = {'Content-Type': 'application/json'}
-        url = '%sremove/producto/%s' %(api_url, url_amigable)
-        return requests.delete(
-            url = url,
-            headers = headers,
-        )
+            time.sleep(1)
 
     @classmethod
     def sync_remote_products(cls):
-        # Entornos a sincronizar: Preproducción y Producción
-        # API_URLS = ['https://prepro.productos-vintage.com/api/']
-
-        # Primero se actualizan las Categorías, por si hay alguna a la que añadirle la descripción
-        Categoria.actualizar_descripciones_categorias()
-
         # Con las descripciones de las Categorías actualizadas, se pasa a sincronizar todos los Productos de las versiones remotas
-        for api_url in API_URLS:
-            print('Sincronizando productos en: %s' %api_url)
-            productos_url_amigables = []
+        api_clients = API_Client.objects.all()
+        for api_client in api_clients:
+            app = App.objects.get(api_client = api_client)
+            print('Sincronizando productos en: %s' %api_client.nombre)
+            urls_amigables = []
             for producto_dict in Producto.get_productos_as_dict():
-                productos_url_amigables.append(producto_dict.get('url_amigable'))
-                r = cls.add_remote_product(api_url, producto_dict)
-                print(r.text, r.status_code)
-                time.sleep(1)
-            cls.delete_remote_products(productos_url_amigables, api_url)
+                urls_amigables.append(producto_dict.get('url_amigable'))
+                r = app.add_product(producto_dict)
 
-    @classmethod
-    def delete_remote_products(cls, productos_url_amigables, api_url):
-        # Ya tenemos la lista de todos los Productos y Categorías que hemos sincronizado a partir de lo que hay en desarrollo
-        # Ahora necesitamos comprobar si hay registros en remoto que deben ser eliminados porque no constan en los registros a sincronizar
-        print('Eliminando Productos que ya no estén en los datos de origen')
-        for producto_dict in json.loads(cls.get_remote_products(api_url).content).get('productos'):
-            if producto_dict.get('url_amigable') not in productos_url_amigables:
-                r = cls.remove_remote_product(api_url, producto_dict.get('url_amigable'))
-                print(r.text, r.status_code)
-                time.sleep(1)
-        print('Comprobando que no haya Categorías sin productos...')
-        for categoria in Categoria.objects.all():
-            if not categoria.producto_set.all():
-                categoria.eliminar_categoria()
+            # Una vez añadidos o modificados en remoto todos los Productos que hay en local, eliminamos aquellos productos remotos que no estén en local
+            for producto in app.get_products().get('productos'):
+                if not producto.get('url_amigable') in urls_amigables:
+                    app.delete_product(producto.get('url_amigable'))
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
@@ -305,52 +322,6 @@ class Producto(models.Model):
         for producto in cls.objects.all():
             productos_dict.append(producto.get_producto_as_dict())
         return productos_dict
-
-
-    @classmethod
-    def sincronizar_productos(cls):
-        # Se sincronizan los productos a partir de las urls en support.url_productos
-        detectados = []
-        for url_producto in random.sample(urls_productos, len(urls_productos)):
-            print('Sincronizando %s' %url_producto)
-            done = cls.sincronizar_producto_from_url(url_producto)
-            if done == 'detectado':
-                detectados.append(url_producto)
-                break
-            if done == 'banned' or done == 'not_found':
-                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
-                break
-            wait = 19
-
-            # Esperando para no estresar a Amazon
-            print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
-            print('')
-
-            time.sleep(wait)
-
-        # Al terminar de sincronizar todos los productos, se eliminan aquellos que no tengan toda la información de manera correcta
-        for producto in Producto.objects.all():
-            producto.verificar_producto()
-
-        # Una vez hemos terminado con la lista de productos a añadir, lo seguimos intentando con aquellos a los que no se pudo acceder
-        # porque Amazon detectó el acceso automático
-        for detectado in detectados:
-            print('Sincronizando %s' % detectado)
-            done = cls.sincronizar_producto_from_url(detectado)
-            if done == 'banned' or done == 'not_found' or done == 'detectado':
-                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
-                break
-            wait = 19
-
-            # Esperando para no estresar a Amazon
-            print('Esperando %s segundos antes de sincronizar el próximo producto...' % wait)
-            print('')
-
-            time.sleep(wait)
-
-        # Una vez terminamos de sincronizar los productos con Amazon, actualizamos los productos en los sitios de producción y preproducción
-        cls.sync_remote_products()
-
 
     @classmethod
     def get_edge_prices(cls, productos):
