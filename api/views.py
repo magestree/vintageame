@@ -238,7 +238,7 @@ def remove_producto(request, url_amigable):
     }
 
     producto = Producto.objects.get(url_amigable = url_amigable)
-    # producto.eliminar_producto()
+    producto.eliminar_producto()
     print('Se ha eliminado el producto %s' %producto)
 
     return HttpResponse(json.dumps(response), content_type = 'application/json')
