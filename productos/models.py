@@ -440,87 +440,12 @@ class Producto(models.Model):
 
     def eliminar_producto(self):
         print('Eliminando producto %s' %self.nombre)
+        categoria_url_amigable = self.categoria.url_amigable
         self.delete()
 
-    # def eliminar_foto_producto(self, size):
-    #     # Elimina el fichero de imagen de una foto del Producto
-    #     print('Eliminando foto de Producto %s' %self.nombre)
-    #     if size == '920_614':
-    #         self.foto_920_614.delete()
-    #     elif size == '464_299':
-    #         self.foto_464_299.delete()
-    #     elif size == '320_320':
-    #         self.foto_320_320.delete()
-    #
-    #     # Comprobar si existen más fotos en el directorio definido para ello, y si no, eliminarlo
-    #     producto_foto_path = '%s/productos/%s/photos/%s' % (settings.MEDIA_ROOT, self.id, size)
-    #
-    #     if os.path.exists(producto_foto_path):
-    #         if not os.listdir(producto_foto_path):
-    #             shutil.rmtree(producto_foto_path)
-    #             print('Eliminado el archivo de la foto del producto en %s' %producto_foto_path)
-    #         else:
-    #             print('Tenemos elementos dentro de %s' %producto_foto_path)
-    #     else:
-    #         print('No podemos eliminar el archivo de la foto porque no existe la ruta: %s' %producto_foto_path)
-    #
-    #     # Luego comprueba si no hay nada más dentro de la carpeta del producto, y si es así la elimina también
-    #     producto_path = '%s/productos/%s' %(settings.MEDIA_ROOT, self.id)
-    #     if os.path.exists(producto_path):
-    #         if not os.listdir(producto_path):
-    #             shutil.rmtree(producto_path)
-    #
-    #     # Se guarda cualquier cambio en el modelo Producto
-    #     self.save()
-
-    # def set_formatos_imagen_principal(self):
-    #     # Con este método se guardan la imagen principal en varios tamaños
-    #     if len(self.url_imagen_principal) > 20:
-    #         resp = requests.get(self.url_imagen_principal)
-    #         if resp.status_code != requests.codes.ok:
-    #             # Error handling here
-    #             print('Error here!')
-    #             return
-    #
-    #         fp = BytesIO()
-    #         fp.write(resp.content)
-    #         file_name = self.url_imagen_principal.split("/")[-1]
-    #
-    #         # 1 - 920 x 614
-    #         if self.foto_920_614:
-    #             self.eliminar_foto_producto(size = '920_614')
-    #         self.foto_920_614.save(file_name, files.File(fp))
-    #         self.save()
-    #         crop_from_center(
-    #             image_path = self.foto_920_614.path,
-    #             width = 920,
-    #             height = 614,
-    #             save = True,
-    #         )
-    #
-    #         # 2 - 464 x 299
-    #         if self.foto_464_299:
-    #             self.eliminar_foto_producto(size = '464_299')
-    #         self.foto_464_299.save(file_name, files.File(fp))
-    #         self.save()
-    #         crop_from_center(
-    #             image_path = self.foto_464_299.path,
-    #             width = 464,
-    #             height = 299,
-    #             save = True,
-    #         )
-    #
-    #         # 2 - 320 x 320
-    #         if self.foto_320_320:
-    #             self.eliminar_foto_producto(size = '320_320')
-    #         self.foto_320_320.save(file_name, files.File(fp))
-    #         self.save()
-    #         crop_from_center(
-    #             image_path = self.foto_320_320.path,
-    #             width = 320,
-    #             height = 320,
-    #             save = True,
-    #         )
+        # Siempre que se elimina un Producto, se comprueba si su Categoría se queda sin productos. En ese caso también se elimina
+        if not Categoria.objects.get(url_amigable = categoria_url_amigable).producto_set.all():
+            Categoria.objects.get(url_amigable = categoria_url_amigable).eliminar_categoria()
 
     @classmethod
     def sincronizar_producto_from_url(cls, url_producto):
