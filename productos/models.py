@@ -1,7 +1,7 @@
 from django.db import models
 from support.urls_productos import urls_productos
 from support.descripciones_categorias import categorias
-from support.globals import API_URLS
+# from support.globals import API_URLS
 import requests, time, json, shutil, random
 import urllib3, os, shutil, math
 from support import methods

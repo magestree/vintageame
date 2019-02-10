@@ -22,6 +22,9 @@
         {% block productos %}{% endblock productos %}
     </div>
 {% endblock content %}
+{% block fbpixel %}
+    fbq('track', 'ViewContent');
+{% endblock fbpixel %}
 {% block custom_js %}
     <script src="{% static 'extra/scripts/categoria.js' %}"></script>
     <script src="{% static 'extra/scripts/my_scripts.js' %}"></script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>{% load staticfiles %}
-<html lang = 'es'>
+<html lang="es">
     <head>
         <meta charset = 'utf-8'>
         {% if ENTORNO == 'preproduccion' %}<meta name = 'robots' content = 'noindex, nofollow'>{% endif %}
@@ -45,24 +45,6 @@
         <script src = "{% static "scripts/puregrid.js" %}"></script>
         <script src = "{% static "scripts/stacktable.js" %}"></script>
         <script src = "{% static "scripts/custom.js" %}"></script>
-        <script type="application/ld+json">
-            {
-             "@context" : "http://schema.org",
-             "@type" : "Organization",
-             "name" : "Productos Vintage",
-             "url" : "https://www.productos-vintage.com",
-             "sameAs" : [
-               "https://www.facebook.com/Productos-Vintage-325876964715650",
-              ],
-             "address": {
-               "@type": "PostalAddress",
-               "streetAddress": "Calle del Toboso 112",
-               "addressRegion": "MA",
-               "postalCode": "28019",
-               "addressCountry": "ES"
-             }
-            }
-        </script>
 
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS }}"></script>
@@ -73,7 +55,26 @@
 
           gtag('config', '{{ GOOGLE_ANALYTICS }}');
         </script>
+        <!-- End Global site tag (gtag.js) - Google Analytics -->
 
+        <!-- Facebook Pixel -->
+        <script>
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window,document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '{{ FB_PIXEL_ID }}');
+            fbq('track', 'PageView');
+            {% block fbpixel %}{% endblock fbpixel %}
+        </script>
+        <noscript>
+            <img height="1" width="1" src="https://www.facebook.com/tr?id={{ FB_PIXEL_ID }}&ev=PageView&noscript=1"/>
+        </noscript>
+        <!-- End Facebook Pixel -->
 
         {% block custom_js %}{% endblock custom_js %}
     </body>
