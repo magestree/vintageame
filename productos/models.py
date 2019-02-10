@@ -44,6 +44,10 @@ class Categoria(models.Model):
     url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
     descripcion = models.TextField('Descripción', blank = True, null = True, max_length = 4096)
 
+    def mejor_producto(self):
+        # Devuelve el Producto que más revisiones y mejor valoración tiene
+        return self.producto_set.order_by('-evaluacion').first()
+
     @classmethod
     # Elimina todas las categorías que no tengan al menos un Producto asociado
     def eliminar_categorias_sin_productos(cls):
