@@ -46,7 +46,7 @@ class Categoria(models.Model):
 
     def mejor_producto(self):
         # Devuelve el Producto que más revisiones y mejor valoración tiene
-        return self.producto_set.order_by('-evaluacion').first()
+        return self.producto_set.order_by('-evaluacion', '-opiniones').first()
 
     @classmethod
     # Elimina todas las categorías que no tengan al menos un Producto asociado
