@@ -314,7 +314,6 @@ urls_productos = [
     'https://amzn.to/2teKd5D',
     'https://amzn.to/2Dt76Xy',
     'https://amzn.to/2IfdOpY',
-    'https://amzn.to/2DrFzpB',
     'https://amzn.to/2RQv4RT',
     'https://amzn.to/2Gmhg09',
     'https://amzn.to/2RQkydi',
