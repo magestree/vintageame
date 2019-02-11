@@ -39,12 +39,12 @@ def categoria(request, url_amigable):
             request.session['min_price_session'] = min_price
             request.session['max_price_session'] = max_price
             precio_minimo, precio_maximo = Decimal(min_price), Decimal(max_price)
-            productos = productos.order_by(order_by, 'precio_final').filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo)
+            productos = productos.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final').filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo)
 
         elif 'order_by' in request.POST:
             precio_maximo = request.POST.get('precio_maximo')
             precio_minimo = request.POST.get('precio_minimo')
-            productos = productos.order_by(order_by, 'precio_final').filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo)
+            productos = productos.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final').filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo)
 
     else:
         # Si no se realiza un filtrado de precios, entonces se resetean los valores del input de precios del formulario
@@ -54,7 +54,7 @@ def categoria(request, url_amigable):
             del request.session['max_price_session']
         # precio_minimo, precio_maximo = None, None
         order_by = '-ahorro_porciento'
-        productos = categoria.producto_set.order_by(order_by, 'precio_final')
+        productos = categoria.producto_set.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final')
 
     # Añadiendo información adicional a los productos
     for producto in productos:
