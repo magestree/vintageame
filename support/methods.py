@@ -48,8 +48,11 @@ def parse_url_imagen_principal(html):
 def parse_nombre(texto):
     print('======== EXTRAYENDO NOMBRE =========')
     nombre = texto.split('<title>')[1].split('</title>')[0]
-    if ': Amazon.es:' in nombre:
-        nombre = nombre.split(': Amazon.es:')[0]
+    if ': Amazon.es' in nombre:
+        if ': Amazon.es:' in nombre:
+            nombre = nombre.split(': Amazon.es:')[0]
+        else:
+            nombre = nombre.split(': Amazon.es')[0]
     else:
         return None
     if '&nbsp;' in nombre:
