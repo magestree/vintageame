@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from productos.models import Categoria
 from productos.views import global_data
+from django.db.models import Count
 
 def index(request):
     # En esta vista mostramos texto para reforzar el SEO on page, y las categorías de los productos en venta
-    categorias = Categoria.objects.order_by('nombre')
+    # categorias = Categoria.objects.order_by('nombre')
+    categorias = Categoria.objects.annotate(count = Count('producto')).order_by('-count')
     categorias_menu = categorias[:10]
 
     context = {
