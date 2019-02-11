@@ -46,7 +46,7 @@ class Categoria(models.Model):
 
     def mejor_producto(self):
         # Devuelve el Producto que más revisiones y mejor valoración tiene
-        return self.producto_set.order_by('-evaluacion', '-opiniones').first()
+        return self.producto_set.order_by('-opiniones', '-evaluacion').first()
 
     @classmethod
     # Elimina todas las categorías que no tengan al menos un Producto asociado
@@ -124,7 +124,11 @@ class Categoria(models.Model):
             print('Ya existe una categoría con nombre %s así que no podemos crearla' %nombre)
             return None
 
-    def modificar_categoria(self, descripcion):
+    def modificar_categoria(self, nombre, descripcion):
+        if self.nombre != nombre:
+            self.nombre = nombre
+            self.nombre_corto = nombre[:39] + '...'
+            self.url_amigable = slugify(nombre)
         if self.descripcion != descripcion:
             self.descripcion = descripcion
         self.save()
@@ -216,10 +220,13 @@ class Producto(models.Model):
     def sincronizar_productos(cls):
         # Esta sincronización consta de dos partes fundamentales:
         # 1 - Actualizar Productos y Categorías en la versión local a partir de Amazon
-        # 1.1 - Sincronizar productos desde Amazon a nuestra versión local
+
+        # 1.1 - Eliminar aquellos productos de nuestra Base de Datos que no estén en la lista de referencia para sincronizar con Amazon
+        cls.eliminar_productos_excluidos(urls_productos=urls_productos)
+
+        # 1.2 - Sincronizar productos desde Amazon a nuestra versión local
         cls.sincronizar_productos_from_amazon()
-        # 1.2 - Eliminar aquellos productos de nuestra Base de Datos que no estén en la lista de referencia para sincronizar con Amazon
-        cls.eliminar_productos_excluidos(urls_productos = urls_productos)
+
         # 1.3 - Actualizar las descripciones de las categorías y eliminar aquellas categorías que no tengan productos asociados
         Categoria.actualizar_descripciones_categorias()
         Categoria.eliminar_categorias_sin_productos()
@@ -232,9 +239,31 @@ class Producto(models.Model):
     @classmethod
     # 1.1 - sincronizar productos from Amazon
     def sincronizar_productos_from_amazon(cls):
-        # Se sincronizan los productos a partir de las urls en support.url_productos
-        for url_producto in random.sample(urls_productos, len(urls_productos)):
-            print('Sincronizando %s' % url_producto)
+        # Primero hacemos una lista de las urls de productos que no tenemos y que si tenemos para priorizar aquellos que no tenemos
+        no_existen = []
+        existen = []
+        for url_producto in urls_productos:
+            if Producto.objects.filter(url_afiliado = url_producto):
+                existen.append(url_producto)
+            else:
+                no_existen.append(url_producto)
+
+        # Se sincronizan los productos no existentes
+        for url_producto in random.sample(no_existen, len(no_existen)):
+            print('Registrando producto: %s' % url_producto)
+            done = cls.sincronizar_producto_from_url(url_producto)
+            if done == 'banned' or done == 'not_found':
+                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
+                break
+            wait = random.randint(10, 20)
+            # Esperando para no estresar a Amazon
+            print('Esperando %s segundos antes de sincronizar el próximo producto...' % wait)
+            print('')
+            time.sleep(wait)
+
+        # Se sincronizan los productos existentes
+        for url_producto in random.sample(existen, len(existen)):
+            print('Actualizando producto: %s' % url_producto)
             done = cls.sincronizar_producto_from_url(url_producto)
             if done == 'banned' or done == 'not_found':
                 # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
@@ -506,6 +535,23 @@ class Producto(models.Model):
 
                         # 4 - Categoría:
                         categoria_name = methods.parse_categoria(html)
+                        # Definimos algunas reglas para modificar posibles nombres de categorías:
+                        # 4.1 - Hogar --> Hogar y cocina
+                        if categoria_name == 'Hogar':
+                            categoria_name = 'Hogar y cocina'
+                        # 4.2 - Videojuegos --> Juguetes y juegos
+                        if categoria_name == 'Videojuegos':
+                            categoria_name = 'Juguetes y juegos'
+                        # 4.3 - Bebé --> Juguetes y juegos
+                        if categoria_name == 'Bebé':
+                            categoria_name = 'Juguetes y juegos'
+                        # 4.4 - Informática --> Electrónica e Informática
+                        if categoria_name == 'Informática':
+                            categoria_name = 'Electrónica e Informática'
+                        # 4.5 - Salud y cuidado personal --> Belleza
+                        if categoria_name == 'Salud y cuidado personal':
+                            categoria_name = 'Belleza'
+
                         if categoria_name:
                             categoria = Categoria.get_categoria_from_name(categoria_name)
                         else:
@@ -543,6 +589,7 @@ class Producto(models.Model):
                         break
 
                     except Exception as e:
+                    # else:
                         print(e)
                         print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
                         break

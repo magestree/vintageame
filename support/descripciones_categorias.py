@@ -1,10 +1,10 @@
 categorias = [
     {
-        'nombre': 'Videojuegos',
+        'nombre': 'Juguetes y juegos',
         'descripcion': '¿Qué hay más emocionante que mirar las antiguas consolas de videojuegos, donde nos podíamos pasar horas y horas con la diversión más sana del mundo?. En nuestra selección de productos vintage tenemos esta categoría de videojuegos donde encontrarás aquello que más te hizo feliz y te remontará a los mejores tiempos de todos.'
     },
     {
-        'nombre': 'Hogar',
+        'nombre': 'Hogar y cocina',
         'descripcion': '¿Pensando en Decorar tu hogar al estilo vintage? Hemos preparado en esta categoría productos vintage para el hogar, que de seguro te ayudarán a lograrlo. ¿Qué mejor sensación que llegar a casa y encontrar un refugio de tanta modernidad y caos? Convierte tu hogar en un lugar en el que puedas remontarte a los mejores momentos y donde todos puedan apreciar el verdadero valor que aquello que no pasa de moda.'
     },
     {
@@ -28,7 +28,7 @@ categorias = [
         'descripcion': '',
     },
     {
-        'nombre': 'Electrónica',
+        'nombre': 'Electrónica e informática',
         'descripcion': '¿Qué causa más nostalgia que una radio, una grabadora de cassette, un teléfono o un tocadiscos de hace varias décadas atrás? En esta categoría de artículos vintage de electrónica, clasificamos para ti varios productos que te van a encantar. Algunos con lo mejor de ambos mundos, un estilo totalmente vintage con las funcionalidades de productos de electrónica modernos... echa un vistazo y compruébalo por ti mismo.',
     },
     {
@@ -41,10 +41,6 @@ categorias = [
     },
     {
         'nombre': 'Alimentación y bebidas',
-        'descripcion': '',
-    },
-    {
-        'nombre': 'Juguetes y juegos',
         'descripcion': '',
     },
     {
@@ -65,10 +61,6 @@ categorias = [
     },
     {
         'nombre': 'Equipaje',
-        'descripcion': '',
-    },
-    {
-        'nombre': 'Bebé',
         'descripcion': '',
     },
     {
