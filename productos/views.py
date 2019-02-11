@@ -53,7 +53,7 @@ def categoria(request, url_amigable):
         if request.session.get('max_price_session'):
             del request.session['max_price_session']
         # precio_minimo, precio_maximo = None, None
-        order_by = 'precio_final'
+        order_by = '-ahorro_porciento'
         productos = categoria.producto_set.order_by(order_by, 'precio_final')
 
     # Añadiendo información adicional a los productos
