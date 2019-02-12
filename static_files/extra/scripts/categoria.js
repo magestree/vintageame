@@ -36,13 +36,4 @@ $.ajax({
 // Definición del orden de productos
 $('#select_order_by').on('change', function () {
     $('#form_order_by').submit();
-    // var target = $(this).children('option:selected').val();
-    // if (target == 'descuentos') {
-    //     window.location.href = '/descuentos/';
-    // }
-    // else {
-    //     if (target == 'mejor_valorados') {
-    //         window.location.href = '/mejor_valorados/'
-    //     }
-    // }
 });

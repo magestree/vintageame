@@ -232,6 +232,10 @@ class Producto(models.Model):
     evaluacion = models.DecimalField('Evaluación',  max_digits = 3, decimal_places = 2, blank = True, null = True, unique = False)
     fecha_registro = models.DateTimeField('Fecha de registro', blank = True, null = True, auto_now_add = True)
 
+    def partial_name(self):
+        # Devuelve la primera parte del nombre de un producto
+        return ' '.join(self.nombre.split(' ')[:4])
+
     @classmethod
     def sincronizar_productos(cls):
         # Esta sincronización consta de dos partes fundamentales:

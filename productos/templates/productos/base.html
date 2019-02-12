@@ -3,7 +3,7 @@
 {% block tab_title %}{% endblock tab_title %}
 {% block meta %}
     <meta name = 'description' content = 'Productos vintage de {{ categoria.nombre }}'>
-    <meta name = 'keywords' content = '{{ categoria }} vintage, productos vintage {{ categoria.nombre }}, vintage {{ categoria.nombre }}'>
+    <meta name = 'keywords' content = '{{ categoria }} vintage, productos vintage {{ categoria.nombre }}, vintage {{ categoria.nombre }}, {% for producto_keyword in productos_keywords %}{{ producto_keyword.partial_name }} vintage, {% endfor %}'>
     <link rel = 'image_src' href = '{{ categoria.producto_set.all.first.url_imagen_principal }}'/>
     <link rel = 'canonical' href = 'https://www.productos-vintage.com'>
 {% endblock meta %}
@@ -21,17 +21,26 @@
             {% include 'website/includes/sidebar/price_filter.html' %}
         </div>
         {% block productos %}{% endblock productos %}
-        <br>
-        <h3>{{ categoria.texto_seo }}</h3>
-        <br>
-        <br>
-        <hr>
-        <h2 class = 'font-vintage justify' style="text-align: center"><u>También puedes encontrar en nuestra tienda Productos Vintage de:</u></h2><br>
-        <div id="portfolio-wrapper">
-            {% for categoria in categorias %}
-                {% include 'productos/includes/categoria.html' with width='three' %}
-            {% endfor %}
-        </div><br>
+    </div>
+    <div class="container margin-bottom-20">
+        <div class="sixteen columns">
+            {% if categoria.texto_seo %}
+                <h3 class = 'font-vintage justify' style="text-indent: 40px;">{{ categoria.texto_seo }}</h3>
+            {% endif %}
+        </div>
+    </div>
+    <hr>
+    <div class="container">
+        <div class="sixteen columns">
+            <h3 class = 'font-vintage justify' style="text-align: center">También puedes encontrar en nuestra tienda, productos vintage de:</h3><br>
+            <div id="portfolio-wrapper">
+                {% for categoria in categorias_footer %}
+                    {% include 'productos/includes/categoria.html' with width='three' %}
+                {% endfor %}
+            </div>
+            <br>
+            <button class = 'newsletter-btn centered'>Ver todas las categorías de productos vintage...</button>
+        </div>
     </div>
 {% endblock content %}
 {% block fbpixel %}
