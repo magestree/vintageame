@@ -343,9 +343,9 @@ class Producto(models.Model):
                 r = app.add_product(producto_dict)
 
             # Una vez añadidos o modificados en remoto todos los Productos que hay en local, eliminamos aquellos productos remotos que no estén en local
-            # for producto in app.get_products().get('productos'):
-            #     if not producto.get('url_amigable') in urls_amigables:
-            #         app.delete_product(producto.get('url_amigable'))
+            for producto in app.get_products().get('productos'):
+                if not producto.get('url_amigable') in urls_amigables:
+                    app.delete_product(producto.get('url_amigable'))
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST
