@@ -331,7 +331,6 @@ urls_productos = [
     'https://amzn.to/2UVLv0T',
     'https://amzn.to/2I7tj2V',
     'https://amzn.to/2GkNh8N',
-    'https://amzn.to/2RXlfSa',
     'https://amzn.to/2GmG1sY',
     'https://amzn.to/2RTL5X3',
     'https://amzn.to/2BvMi1B',

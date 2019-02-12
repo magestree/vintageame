@@ -1,7 +1,8 @@
 from django.shortcuts import render, HttpResponse
 from django.http import Http404
+from django.db.models import Count
 from productos.models import Producto, Categoria
-from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO, GOOGLE_ANALYTICS, GOOGLE_ADSENSE, FB_PIXEL_ID
+from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO, GOOGLE_ANALYTICS, GOOGLE_ADSENSE, FB_PIXEL_ID, HOTJAR_ID
 from decimal import Decimal
 import json
 
@@ -13,18 +14,18 @@ def global_data(request):
         'GOOGLE_ADSENSE': GOOGLE_ADSENSE,
         'ENTORNO': ENTORNO,
         'FB_PIXEL_ID': FB_PIXEL_ID,
+        'HOTJAR_ID': HOTJAR_ID,
     }
 
 def categoria(request, url_amigable):
-    # Se obtiene la Categoría de esta vista y el resto de categorías para el menú
-    if not Categoria.objects.filter(url_amigable = url_amigable):
+    categorias = Categoria.objects.prefetch_related('producto_set').annotate(count = Count('producto')).order_by('-count')
+    categorias_footer = categorias[:5]
+    categoria = categorias.filter(url_amigable = url_amigable).first()
+    if not categoria:
         raise Http404
-
-    categoria = Categoria.objects.get(url_amigable = url_amigable)
-    categorias = Categoria.objects.order_by('nombre')
-
-    precio_maximo, precio_minimo = None, None
-    productos = categoria.producto_set.all()
+    order_by = '-ahorro_porciento' # Se define el criterio de ordenación de productos por defecto
+    productos = categoria.producto_set.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final')
+    productos_keywords = productos[:5]
 
     if request.method == 'POST':
         order_by = request.POST.get('order_by')
@@ -40,12 +41,12 @@ def categoria(request, url_amigable):
             request.session['min_price_session'] = min_price
             request.session['max_price_session'] = max_price
             precio_minimo, precio_maximo = Decimal(min_price), Decimal(max_price)
-            productos = productos.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final').filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo)
+            productos = productos.filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo).order_by(order_by)
 
         elif 'order_by' in request.POST:
             precio_maximo = request.POST.get('precio_maximo')
             precio_minimo = request.POST.get('precio_minimo')
-            productos = productos.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final').filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo)
+            productos = productos.filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo).order_by(order_by)
 
     else:
         # Si no se realiza un filtrado de precios, entonces se resetean los valores del input de precios del formulario
@@ -53,9 +54,6 @@ def categoria(request, url_amigable):
             del request.session['min_price_session']
         if request.session.get('max_price_session'):
             del request.session['max_price_session']
-        # precio_minimo, precio_maximo = None, None
-        order_by = '-ahorro_porciento'
-        productos = categoria.producto_set.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final')
 
     # Añadiendo información adicional a los productos
     for producto in productos:
@@ -80,10 +78,10 @@ def categoria(request, url_amigable):
     context = {
         'categoria': categoria,
         'categorias': categorias,
+        'categorias_footer': categorias_footer,
         'productos': productos,
+        'productos_keywords': productos_keywords,
         'order_by': order_by,
-        # 'precio_minimo': precio_minimo,
-        # 'precio_maximo': precio_maximo,
     }
 
     context.update(global_data(request))
