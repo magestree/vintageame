@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse
 from django.http import Http404
 from productos.models import Producto, Categoria
-from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO, GOOGLE_ANALYTICS, FB_PIXEL_ID
+from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO, GOOGLE_ANALYTICS, GOOGLE_ADSENSE, FB_PIXEL_ID
 from decimal import Decimal
 import json
 
@@ -10,6 +10,7 @@ def global_data(request):
     return {
         'GOOGLE_SITE_VERIFICATION': GOOGLE_SITE_VERIFICATION,
         'GOOGLE_ANALYTICS': GOOGLE_ANALYTICS,
+        'GOOGLE_ADSENSE': GOOGLE_ADSENSE,
         'ENTORNO': ENTORNO,
         'FB_PIXEL_ID': FB_PIXEL_ID,
     }
