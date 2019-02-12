@@ -13,7 +13,7 @@
         <h2 class = 'font-vintage justify' style="text-align: center"><u>Categorías</u></h2><br>
         <div id="portfolio-wrapper">
             {% for categoria in categorias %}
-                {% include 'productos/includes/categoria.html' %}
+                {% include 'productos/includes/categoria.html' with width='four' %}
             {% endfor %}
         </div><br>
     </div>

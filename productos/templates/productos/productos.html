@@ -4,6 +4,7 @@
     <span id = 'categoria_id' class = '{{ categoria.id }}'></span>
     <div class="twelve columns">{% include 'productos/includes/ordenar_productos.html' with selector="descuentos" %}</div>
     <div class="twelve columns products"><br>
+{#    <div class="fourteen columns products"><br>#}
         <div id="portfolio-wrapper">
         {% for producto in productos %}
             {% include 'productos/includes/producto.html' %}
