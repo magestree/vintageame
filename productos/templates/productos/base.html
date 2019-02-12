@@ -15,11 +15,23 @@
                 {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}<br>
             </div>
         {% endif %}
+{#        <div class="two columns">#}
         <div class="four columns">
             {% include 'website/includes/sidebar/categories.html' %}
             {% include 'website/includes/sidebar/price_filter.html' %}
         </div>
         {% block productos %}{% endblock productos %}
+        <br>
+        <h3>{{ categoria.texto_seo }}</h3>
+        <br>
+        <br>
+        <hr>
+        <h2 class = 'font-vintage justify' style="text-align: center"><u>También puedes encontrar en nuestra tienda Productos Vintage de:</u></h2><br>
+        <div id="portfolio-wrapper">
+            {% for categoria in categorias %}
+                {% include 'productos/includes/categoria.html' with width='three' %}
+            {% endfor %}
+        </div><br>
     </div>
 {% endblock content %}
 {% block fbpixel %}

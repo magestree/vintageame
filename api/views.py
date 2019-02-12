@@ -19,8 +19,26 @@ def add_categoria(request):
             return HttpResponse(json.dumps(response), content_type = 'application/json')
 
         content = json.loads(request.body)
-        url_amigable = content.get('url_amigable')
-        response['message'] = 'Se ha eliminado correctamente la categoría: "%s"' %url_amigable
+        nombre = content.get('nombre')
+        descripcion = content.get('descripcion')
+        texto_seo = content.get('texto_seo')
+
+        categoria = Categoria.objects.filter(nombre = nombre).first()
+        if categoria:
+            categoria.modificar_categoria(
+                nombre = nombre,
+                descripcion = descripcion,
+                texto_seo = texto_seo,
+            )
+            response['categoria'] = categoria.get_categoria_as_dict()
+            response['message'] = 'Se ha modificado correctamente la Categoría existente: "%s"' %nombre
+        else:
+            n_categoria = Categoria.nueva_categoria(
+                nombre = nombre,
+                descripcion = descripcion,
+                texto_seo = texto_seo,
+            )
+
 
     return HttpResponse(json.dumps(response), content_type = 'application/json')
 
@@ -54,27 +72,13 @@ def add_producto(request):
         evaluacion = content.get('evaluacion')
         fecha_registro = content.get('fecha_registro')
 
-        # print(nombre)
-        # print(nombre_corto)
-        # print(url_amigable)
-        # print(precio_antes)
-        # print(precio_final)
-        # print(ahorro_euros)
-        # print(ahorro_porciento)
-        # print(categoria)
-        # print(url_afiliado)
-        # print(url_imagen_principal)
-        # print(asin)
-        # print(opiniones)
-        # print(evaluacion)
-        # print(fecha_registro)
-
         # Para crear un producto es imprescindible que tenga asociado una Categoría, así que definimos el objeto Categoría
         # a partir de la información recibida en forma de diccionario
         if Categoria.objects.filter(url_amigable = categoria.get('url_amigable')):
             existent_categoria = Categoria.objects.get(url_amigable = categoria.get('url_amigable'))
             existent_categoria.modificar_categoria(
                 descripcion = categoria.get('descripcion'),
+                texto_seo = categoria.get('texto_seo'),
             )
             categoria = existent_categoria
         else:
@@ -82,6 +86,7 @@ def add_producto(request):
             categoria = Categoria.nueva_categoria(
                 nombre = categoria.get('nombre'),
                 descripcion = categoria.get('descripcion'),
+                texto_seo = categoria.get('texto_seo'),
             )
 
         # Con la categoría ya definida podemos crear el Producto si no existe ya de antes. El criterio de comparación es la url_amigable

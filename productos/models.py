@@ -43,6 +43,7 @@ class Categoria(models.Model):
     nombre_corto = models.CharField('Nombre cort', max_length = 40 ,blank = True, null = True)
     url_amigable = models.SlugField('URL amigable', max_length = 512, blank = True, null = True)
     descripcion = models.TextField('Descripción', blank = True, null = True, max_length = 4096)
+    texto_seo = models.TextField('Texto SEO', blank = True, null = True)
 
     def mejor_producto(self):
         # Devuelve el Producto que más revisiones y mejor valoración tiene
@@ -70,6 +71,7 @@ class Categoria(models.Model):
             'nombre_corto': self.nombre_corto,
             'url_amigable': self.url_amigable,
             'descripcion': self.descripcion,
+            'texto_seo': self.texto_seo,
         }
         return categoria_dict
 
@@ -82,10 +84,20 @@ class Categoria(models.Model):
                 # Una vez hemos encontrado una categoría y actualizado su descripción salimos de la búsqueda
                 break
 
+    def actualizar_texto_seo_categoria(self):
+        for categoria in categorias:
+            if categoria.get('nombre').lower() == self.nombre.lower():
+                self.texto_seo = categoria.get('texto_seo')
+                self.save()
+                print('Se ha actualizado correctamente el texto SEO de la categoría: %s' %self.nombre)
+                # Una vez hemos encontrado una categoría y actualizado su descripción salimos de la búsqueda
+                break
+
     @classmethod
-    def actualizar_descripciones_categorias(cls):
+    def actualizar_textos_categorias(cls):
         for categoria in cls.objects.all():
             categoria.actualizar_descripcion_categoria()
+            categoria.actualizar_texto_seo_categoria()
 
     @classmethod
     def get_categoria_from_name(cls, categoria_name):
@@ -95,11 +107,13 @@ class Categoria(models.Model):
             categoria = Categoria.nueva_categoria(
                 nombre = categoria_name,
                 descripcion = None,
+                texto_seo = None,
             )
             # Se actualiza la descripción de la categoría
             for c in categorias:
                 if c.get('nombre').lower() == categoria.nombre.lower():
                     categoria.descripcion = c.get('descripcion')
+                    categoria.texto_seo = c.get('texto_seo')
                     categoria.save()
                     print('Se ha actualizado correctamente la descripción de la categoría: %s' % categoria.nombre)
                     # Una vez hemos encontrado una categoría y actualizado su descripción salimos de la búsqueda
@@ -111,26 +125,28 @@ class Categoria(models.Model):
         return categoria
 
     @classmethod
-    def nueva_categoria(cls, nombre, descripcion):
+    def nueva_categoria(cls, nombre, descripcion, texto_seo):
         if not cls.objects.filter(nombre = nombre):
             n_categoria = cls.objects.create(
                 nombre = nombre,
                 nombre_corto = nombre[:39] + '...',
                 url_amigable = slugify(nombre),
                 descripcion = descripcion,
+                texto_seo = texto_seo,
             )
             return n_categoria
         else:
             print('Ya existe una categoría con nombre %s así que no podemos crearla' %nombre)
             return None
 
-    def modificar_categoria(self, nombre, descripcion):
+    def modificar_categoria(self, nombre, descripcion, texto_seo):
         if self.nombre != nombre:
             self.nombre = nombre
             self.nombre_corto = nombre[:39] + '...'
             self.url_amigable = slugify(nombre)
         if self.descripcion != descripcion:
             self.descripcion = descripcion
+        self.texto_seo = texto_seo
         self.save()
         return self
 
@@ -227,8 +243,10 @@ class Producto(models.Model):
         # 1.2 - Sincronizar productos desde Amazon a nuestra versión local
         cls.sincronizar_productos_from_amazon()
 
-        # 1.3 - Actualizar las descripciones de las categorías y eliminar aquellas categorías que no tengan productos asociados
-        Categoria.actualizar_descripciones_categorias()
+        # 1.3 - Actualizar las textos (descripción y textos SEO) de las categorías y eliminar aquellas categorías que no tengan productos asociados
+        Categoria.actualizar_textos_categorias()
+
+        # 1.4 - Eliminar aquellas Categorías de nuestra BD que no tengan ningún Producto asociado
         Categoria.eliminar_categorias_sin_productos()
 
         # 2 - Actualizar las versiones de preproducción y producción del sitio a partir de los productos y categorías en nuestra versión de desarrollo
@@ -575,6 +593,9 @@ class Producto(models.Model):
 
                         # 5 - ASIN
                         asin = methods.parse_asin(html)
+                        if Producto.objects.filter(asin = asin):
+                            print('El Producto con URL: "%s" ya existe en nuestra BD con la URL: "%s"' %(url_producto, Producto.objects.get(asin = asin).url_afiliado))
+                            return 'success'
 
                         # 6 - Cantidad de opiniones
                         opiniones = methods.parse_opiniones(html)
