@@ -146,18 +146,12 @@ class App(models.Model):
         print('Añadiendo en %s el Producto: %s' %(self.api_client.base_url, producto_dict.get('url_amigable')))
         url = '%sadd/producto/' %self.api_client.base_url
         headers = {'Content-Type': 'application/json'}
-
-        print('1111')
-
         r = requests.post(
             url = url,
             headers = headers,
             data = json.dumps(producto_dict),
         )
-
-        print(r.content)
-
-        # return json.loads(r.content)
+        return json.loads(r.content)
 
     # 3.2 - Add Categoría
     def add_categoria(self, categoria_dict):
