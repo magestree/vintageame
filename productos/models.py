@@ -333,19 +333,19 @@ class Producto(models.Model):
     @classmethod
     def sync_remote_products(cls):
         # Con las descripciones de las Categorías actualizadas, se pasa a sincronizar todos los Productos de las versiones remotas
-        api_clients = API_Client.objects.all()
+        api_clients = API_Client.objects.filter(activo = True)
         for api_client in api_clients:
             app = App.objects.get(api_client = api_client)
             print('Sincronizando productos en: %s' %api_client.nombre)
             urls_amigables = []
-            for producto_dict in Producto.get_productos_as_dict():
+            for producto_dict in Producto.get_productos_as_dict()[:1]:
                 urls_amigables.append(producto_dict.get('url_amigable'))
                 r = app.add_product(producto_dict)
 
             # Una vez añadidos o modificados en remoto todos los Productos que hay en local, eliminamos aquellos productos remotos que no estén en local
-            for producto in app.get_products().get('productos'):
-                if not producto.get('url_amigable') in urls_amigables:
-                    app.delete_product(producto.get('url_amigable'))
+            # for producto in app.get_products().get('productos'):
+            #     if not producto.get('url_amigable') in urls_amigables:
+            #         app.delete_product(producto.get('url_amigable'))
 
     def get_producto_as_dict(self):
         # Devuelve el Producto como un diccionario, listo para ser enviado vía REST

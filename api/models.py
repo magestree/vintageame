@@ -5,6 +5,7 @@ import json, requests
 class API_Client(models.Model):
     nombre = models.CharField('Nombre', max_length = 128, blank = False, null = False, unique = True)
     base_url = models.CharField('Base URL', max_length = 255, blank = False, null = False, unique = True)
+    activo = models.BooleanField('Activo', blank = True, default = True)
 
     @classmethod
     def nuevo_api_client(cls, nombre, base_url):
@@ -145,12 +146,18 @@ class App(models.Model):
         print('Añadiendo en %s el Producto: %s' %(self.api_client.base_url, producto_dict.get('url_amigable')))
         url = '%sadd/producto/' %self.api_client.base_url
         headers = {'Content-Type': 'application/json'}
+
+        print('1111')
+
         r = requests.post(
             url = url,
             headers = headers,
             data = json.dumps(producto_dict),
         )
-        return json.loads(r.content)
+
+        print(r.content)
+
+        # return json.loads(r.content)
 
     # 3.2 - Add Categoría
     def add_categoria(self, categoria_dict):
