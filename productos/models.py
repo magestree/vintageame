@@ -252,12 +252,14 @@ class Producto(models.Model):
         for url_producto in random.sample(no_existen, len(no_existen)):
             print('Registrando producto: %s' % url_producto)
             done = cls.sincronizar_producto_from_url(url_producto)
+
             if done == 'banned' or done == 'not_found':
                 # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
                 break
-            wait = random.randint(10, 20)
+
             # Esperando para no estresar a Amazon
-            print('Esperando %s segundos antes de sincronizar el próximo producto...' % wait)
+            wait = random.randint(5, 10)
+            print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
             print('')
             time.sleep(wait)
 
@@ -265,12 +267,26 @@ class Producto(models.Model):
         for url_producto in random.sample(existen, len(existen)):
             print('Actualizando producto: %s' % url_producto)
             done = cls.sincronizar_producto_from_url(url_producto)
+
+            # done puese ser:
+            # 1 - success --------> Se ha completado con éxito la extracción de datos
+            # 2 - fail -----------> Ha fallado la extración de datos
+            # 3 - banned ---------> Amazon ha baneado nuestra IP y nos devuelve 503
+            # 4 - detectado ------> Amazon ha detectado el acceso automático y nos devuelve 200 pero sin información
+            # 5 - not_found ------> El link no es correcto y Amazon nos devuelve 404
+
             if done == 'banned' or done == 'not_found':
                 # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
                 break
-            wait = random.randint(10, 20)
+            elif done == 'fail':
+                # Si no hemos podido sincronizar el producto debido a un fallo en la obtención de datos, entonces eliminamos nuestro producto de la BD
+                producto = Producto.objects.get(url_afiliado = url_producto)
+                producto.eliminar_producto()
+
             # Esperando para no estresar a Amazon
-            print('Esperando %s segundos antes de sincronizar el próximo producto...' % wait)
+            wait = random.randint(5, 10)
+
+            print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
             print('')
             time.sleep(wait)
 
@@ -280,7 +296,6 @@ class Producto(models.Model):
         for producto in cls.objects.all():
             if not producto.url_afiliado in urls_productos:
                 producto.eliminar_producto()
-
 
     @classmethod
     # Descarga en un directorio del servidor todas las imágenes de los Productos en nuestra BD
@@ -487,7 +502,7 @@ class Producto(models.Model):
         try:
             # Se realizan hasta 30 intentos de recuperación de información por producto,
             # por si Amazon detecta una y otra vez un acceso automatizado
-            for attempt in range(30):
+            for attempt in range(20):
                 print('Iniciando intento %s de obtención de datos...' %attempt)
                 # Se realiza una petición GET a la url del producto en Amazon
                 response = requests.get(url_producto, headers = headers, verify = False)
@@ -502,7 +517,7 @@ class Producto(models.Model):
                         # Una vez tenemos el código HTML, se comprueba si contiene la información deseada, o Amazon ha
                         # detectado nuestro acceso automatizado
                         if 'For automated access to price change or offer listing change events' in html:
-                            w = random.randint(10, 20)
+                            w = random.randint(5, 10)
                             print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en %s segundos...' %w)
                             time.sleep(w)
                             continue
@@ -514,7 +529,7 @@ class Producto(models.Model):
                         # Siempre al final de cada parámetro del producto, comprobamos si hemos obtenido correctamente la información
                         if not url_imagen_principal:
                             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
-                            break
+                            return 'fail'
 
                         # 2 - Precio:
                         detalles_precio = methods.parser_precio(html)
@@ -525,13 +540,13 @@ class Producto(models.Model):
                         # El precio_final es requisito para que se considere correcta la información obtenida
                         if not precio_final:
                             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
-                            break
+                            return 'fail'
 
                         # 3 - Nombre:
                         nombre = methods.parse_nombre(html)
                         if not nombre:
                             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
-                            break
+                            return 'fail'
 
                         # 4 - Categoría:
                         categoria_name = methods.parse_categoria(html)
@@ -546,7 +561,7 @@ class Producto(models.Model):
                         if categoria_name == 'Bebé':
                             categoria_name = 'Juguetes y juegos'
                         # 4.4 - Informática --> Electrónica e Informática
-                        if categoria_name == 'Informática':
+                        if categoria_name == 'Informática' or categoria_name == 'Electrónica':
                             categoria_name = 'Electrónica e Informática'
                         # 4.5 - Salud y cuidado personal --> Belleza
                         if categoria_name == 'Salud y cuidado personal':
@@ -556,7 +571,7 @@ class Producto(models.Model):
                             categoria = Categoria.get_categoria_from_name(categoria_name)
                         else:
                             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
-                            break
+                            return 'fail'
 
                         # 5 - ASIN
                         asin = methods.parse_asin(html)
@@ -586,13 +601,13 @@ class Producto(models.Model):
                             print('No se ha podido crear el nuevo Producto')
 
                         # Si logramos crear el producto, salimos del for de intentos
-                        break
+                        return 'success'
 
                     except Exception as e:
                     # else:
                         print(e)
                         print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
-                        break
+                        return 'fail'
 
                 elif response.status_code == 404:
                     print('Amazon ha respondido un código 404, abandonamos el  producto')
@@ -613,6 +628,7 @@ class Producto(models.Model):
         # else:
             print(e)
             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+            return 'fail'
 
     # Declaración del object manager
     objects = Producto_Manager()
