@@ -102,3 +102,7 @@ a, .happy-clients-author, #categories li li a.active span, #categories li li a.a
 input.newsletter {
     background-color: #F5F5F5;
 }
+
+a.button.color:hover {
+    background-color: #C59659;
+}
