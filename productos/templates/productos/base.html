@@ -11,15 +11,13 @@
     {% block page_title %}{% endblock page_title %}<br>
     <div class="container">
         {% if categoria.descripcion %}
-            <div class="sixteen columns">
-                {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}<br>
-            </div>
+            {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}<br>
         {% endif %}
 {#        <div class="two columns">#}
-        <div class="four columns">
-            {% include 'website/includes/sidebar/categories.html' %}
-            {% include 'website/includes/sidebar/price_filter.html' %}
-        </div>
+{#        <div class="four columns">#}
+{#            {% include 'website/includes/sidebar/categories.html' %}#}
+{#            {% include 'website/includes/sidebar/price_filter.html' %}#}
+{#        </div>#}
         {% block productos %}{% endblock productos %}
     </div>
     <div class="container margin-bottom-20">

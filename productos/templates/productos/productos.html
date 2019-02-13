@@ -2,13 +2,14 @@
 {% block page_title %}{% include 'website/includes/title_bar.html' with page_title=categoria.nombre %}{% endblock page_title %}
 {% block productos %}
     <span id = 'categoria_id' class = '{{ categoria.id }}'></span>
-    <div class="twelve columns">{% include 'productos/includes/ordenar_productos.html' with selector="descuentos" %}</div>
-    <div class="twelve columns products"><br>
-{#    <div class="fourteen columns products"><br>#}
-        <div id="portfolio-wrapper">
+    <div class = 'container'>
+        <div class="eight columns">{% include 'productos/includes/ordenar_productos.html' with selector="descuentos" %}</div>
+        <div class="eight columns">{% include 'website/includes/sidebar/price_filter.html' %}</div>
+    </div>
+    <hr>
+    <div id="portfolio-wrapper">
         {% for producto in productos %}
             {% include 'productos/includes/producto.html' %}
         {% endfor %}
-        </div>
     </div>
 {% endblock productos %}

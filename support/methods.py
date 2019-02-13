@@ -2,9 +2,7 @@ from decimal import Decimal
 
 def parse_url_imagen_principal(html):
     print('======== EXTRAYENDO URL IMAGEN PRINCIPAL =========')
-    detalles_imagenes = {
-        'url_imagen_principal': None,
-    }
+    url_imagen_principal = None
     if '<li class="image item itemNo0' in html:
         bloque1 = html.split('<li class="image item itemNo0')[1]
         if 'data-old-hires="' in bloque1:
@@ -12,25 +10,25 @@ def parse_url_imagen_principal(html):
             if '"' in bloque2:
                 url_imagen_principal = bloque2.split('"')[0]
                 if len(url_imagen_principal) > 20 and 'https://' in url_imagen_principal and '.jpg' in url_imagen_principal:
-                    detalles_imagenes['url_imagen_principal'] = url_imagen_principal
                     print('Se ha obtenido la url_imagen_principal: %s' % url_imagen_principal)
                 else:
                     print('El formato de la URL (%s) es incorrecto' %url_imagen_principal)
+                    url_imagen_principal = None
             else:
                 print('No se ha encontrado " en el código html buscado')
 
             # Si no se ha podido obtener la url de la imagen con la primera estructura, se prueba con una segunda
-            if not detalles_imagenes['url_imagen_principal']:
+            if not url_imagen_principal:
                 if 'jpg' in bloque2:
                     bloque3 = bloque2.split('jpg')[0]
                     if 'https' in bloque3:
                         bloque4 = bloque3.split('https')[1]
                         url_imagen_principal = 'https%sjpg' % bloque4
                         if len(url_imagen_principal) > 20 and 'https://' in url_imagen_principal and '.jpg' in url_imagen_principal:
-                            detalles_imagenes['url_imagen_principal'] = url_imagen_principal
-                            print('Se ha obtenido la url_imagen_principal: %s' % url_imagen_principal)
+                            print('Se ha obtenido la url_imagen_principal: %s' %url_imagen_principal)
                         else:
-                            print('El formato de la URL (%s) es incorrecto' % url_imagen_principal)
+                            print('El formato de la URL (%s) es incorrecto' %url_imagen_principal)
+                            url_imagen_principal = None
                     else:
                         print('No se ha encontrado https en el código fuente')
                 else:
@@ -40,19 +38,22 @@ def parse_url_imagen_principal(html):
     else:
         print('No se ha encontrado "<li class="image item itemNo0" en el código html buscado')
 
-    if 'url_imagen_principal' in detalles_imagenes:
-        return detalles_imagenes['url_imagen_principal']
-    else:
-        return None
+    return url_imagen_principal
 
-def parse_nombre(texto):
+def parse_nombre(texto, debug = False):
     print('======== EXTRAYENDO NOMBRE =========')
     nombre = texto.split('<title>')[1].split('</title>')[0]
+    if debug:
+        print(nombre, '**1**')
     if ': Amazon.es' in nombre:
         if ': Amazon.es:' in nombre:
             nombre = nombre.split(': Amazon.es:')[0]
+            if debug:
+                print(nombre, '**2**')
         else:
             nombre = nombre.split(': Amazon.es')[0]
+            if debug:
+                print(nombre, '**3**')
     else:
         return None
     if '&nbsp;' in nombre:

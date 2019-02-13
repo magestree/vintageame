@@ -7,6 +7,7 @@ import urllib3, os, shutil, math
 from support import methods
 from django.template.defaultfilters import slugify
 from api.models import API_Client, App
+from support.globals import proxies
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -47,7 +48,7 @@ class Categoria(models.Model):
 
     def mejor_producto(self):
         # Devuelve el Producto que más revisiones y mejor valoración tiene
-        return self.producto_set.order_by('-opiniones', '-evaluacion').first()
+        return self.producto_set.order_by('-opiniones', '-evaluacion', 'precio_final').first()
 
     @classmethod
     # Elimina todas las categorías que no tengan al menos un Producto asociado
@@ -227,10 +228,20 @@ class Producto(models.Model):
     categoria = models.ForeignKey(Categoria, blank = True, null = True, unique = False, on_delete = models.CASCADE)
     url_afiliado = models.TextField('URL Amazon', max_length = 4096, blank = True, null = True)
     url_imagen_principal = models.TextField('URL Imagen principal', max_length = 4096, blank = True, null = True)
-    asin = models.CharField('ASIN', max_length = 16, blank = True, null = True, unique = True)
+    asin = models.CharField('ASIN', max_length = 16, blank = False, null = False, unique = True)
     opiniones = models.IntegerField('Opiniones', blank = True, null = True, unique = False)
     evaluacion = models.DecimalField('Evaluación',  max_digits = 3, decimal_places = 2, blank = True, null = True, unique = False)
     fecha_registro = models.DateTimeField('Fecha de registro', blank = True, null = True, auto_now_add = True)
+
+    @classmethod
+    def clasificar_segun_existencia(cls, urls_productos):
+        urls_productos_inexistentes, urls_productos_existentes = [], []
+        for url_producto in urls_productos:
+            if Producto.objects.filter(url_afiliado=url_producto):
+                urls_productos_existentes.append(url_producto)
+            else:
+                urls_productos_inexistentes.append(url_producto)
+        return urls_productos_inexistentes, urls_productos_existentes
 
     def partial_name(self):
         # Devuelve la primera parte del nombre de un producto
@@ -242,10 +253,17 @@ class Producto(models.Model):
         # 1 - Actualizar Productos y Categorías en la versión local a partir de Amazon
 
         # 1.1 - Eliminar aquellos productos de nuestra Base de Datos que no estén en la lista de referencia para sincronizar con Amazon
-        cls.eliminar_productos_excluidos(urls_productos=urls_productos)
+        cls.eliminar_productos_excluidos(urls_productos = urls_productos)
 
         # 1.2 - Sincronizar productos desde Amazon a nuestra versión local
-        cls.sincronizar_productos_from_amazon()
+        # Primero hacemos una lista de las urls de productos que no tenemos y que si tenemos para priorizar aquellos que no tenemos
+        urls_productos_inexistentes, urls_productos_existentes = Producto.clasificar_segun_existencia(urls_productos)
+        print('Iniciando registro de nuevos productos (%s)...' %(len(urls_productos_inexistentes)))
+        cls.sincronizar_productos_from_amazon(urls_productos_inexistentes) # Se priorizan las URLS inexistentes
+
+        print('')
+        print('Iniciando la actualización de los productos existentes (%s)...' %(len(urls_productos_existentes)))
+        cls.sincronizar_productos_from_amazon(urls_productos_existentes) # Luego se sincronizan las URLS existentes, es decir, se actualiza la información
 
         # 1.3 - Actualizar las textos (descripción y textos SEO) de las categorías y eliminar aquellas categorías que no tengan productos asociados
         Categoria.actualizar_textos_categorias()
@@ -257,67 +275,83 @@ class Producto(models.Model):
         # 2.1 - Añadir/Modificar todos aquellos productos que tengamos en nuestra versión de desarrollo
         cls.sync_remote_products()
 
-
     @classmethod
     # 1.1 - sincronizar productos from Amazon
-    def sincronizar_productos_from_amazon(cls):
-        # Primero hacemos una lista de las urls de productos que no tenemos y que si tenemos para priorizar aquellos que no tenemos
-        no_existen = []
-        existen = []
-        for url_producto in urls_productos:
-            if Producto.objects.filter(url_afiliado = url_producto):
-                existen.append(url_producto)
-            else:
-                no_existen.append(url_producto)
-
-        # Se sincronizan los productos no existentes
-        for url_producto in random.sample(no_existen, len(no_existen)):
-            print('Registrando producto: %s' % url_producto)
-            done = cls.sincronizar_producto_from_url(url_producto)
-
-            if done == 'banned' or done == 'not_found':
-                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
-                break
-
-            # Esperando para no estresar a Amazon
-            wait = random.randint(5, 10)
-            print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
+    def sincronizar_productos_from_amazon(cls, urls_productos):
+        # En caso de que entremos a este método sin urls que procesar, es como único saldremos de él
+        if not urls_productos:
+            print('Hemos concluído con la sincronización de este grupo de urls :)')
             print('')
-            time.sleep(wait)
+            return
 
-        # Se sincronizan los productos existentes
-        for url_producto in random.sample(existen, len(existen)):
-            print('Actualizando producto: %s' % url_producto)
-            done = cls.sincronizar_producto_from_url(url_producto)
+        available_proxies = random.sample(proxies, len(proxies))
+        for proxy in available_proxies:
 
-            # done puese ser:
-            # 1 - success --------> Se ha completado con éxito la extracción de datos
-            # 2 - fail -----------> Ha fallado la extración de datos
-            # 3 - banned ---------> Amazon ha baneado nuestra IP y nos devuelve 503
-            # 4 - detectado ------> Amazon ha detectado el acceso automático y nos devuelve 200 pero sin información
-            # 5 - not_found ------> El link no es correcto y Amazon nos devuelve 404
+            if not urls_productos:
+                return
 
-            if done == 'banned' or done == 'not_found':
-                # Si hemos sido baneados por Amazon, abandonamos el proceso para no empeorar la situación
-                break
-            elif done == 'fail':
-                # Si no hemos podido sincronizar el producto debido a un fallo en la obtención de datos, entonces eliminamos nuestro producto de la BD
-                producto = Producto.objects.get(url_afiliado = url_producto)
-                producto.eliminar_producto()
+            print('====== UTILIZANDO EL PROXY (%s de %s): %s ======' %(proxies.index(proxy), len(proxies), proxy))
+            for url_producto in random.sample(urls_productos, len(urls_productos)):
 
-            # Esperando para no estresar a Amazon
-            wait = random.randint(5, 10)
+                print('Sincronizando Producto (%s de %s): %s' %(urls_productos.index(url_producto) + 1, len(urls_productos), url_producto))
+                done = cls.sincronizar_producto_from_url(url_producto)
 
-            print('Esperando %s segundos antes de sincronizar el próximo producto...' %wait)
-            print('')
-            time.sleep(wait)
+                # done puese ser:
+                # 1 - success --------> Se ha completado con éxito la extracción de datos
+                # 2 - fail -----------> Ha fallado la extración de datos
+                # 3 - banned ---------> Amazon ha baneado nuestra IP y nos devuelve 503
+                # 4 - detectado ------> Amazon ha detectado el acceso automático y nos devuelve 200 pero sin información
+                # 5 - not_found ------> El link no es correcto y Amazon nos devuelve 404
+
+                # Si done es: banned o detectado, cambiamos de proxy
+                if done == 'banned':
+                    # En este caso NO eliminamos la url procesada de las urls_productos
+                    print('Amazon ha bloqueado la IP: %s' %proxy)
+                    break
+                elif done == 'detectado':
+                    # En este caso NO eliminamos la url procesada de las urls_productos
+                    print('Amazon ha detctado que es un acceso automático y no nos ha dejado acceder a la información desde %s' %proxy)
+                    print('')
+                    break
+
+                # Si done es: fail o not_found, pasamos al siguiente producto
+                elif done == 'fail':
+                    # En este caso eliminamos la url procesada de las urls_productos
+                    urls_productos.remove(url_producto)
+                    print('Ha habido un error en el parseo de datos para la URL: %s' %url_producto)
+                    print('')
+                    continue
+                elif done == 'not_found':
+                    # En este caso eliminamos la url procesada de las urls_productos
+                    urls_productos.remove(url_producto)
+                    print('Esta URL parece incorrecta: %s' %url_producto)
+                    print('')
+                    continue
+
+                # Si done es success, pasamos al siguiente producto
+                elif done == 'success':
+                    # En este caso eliminamos la url procesada de las urls_productos
+                    urls_productos.remove(url_producto)
+                    print('Se ha terminado de actualizar con éxito la información del producto con la URL: %s' %url_producto)
+                    print('')
+                    continue
+
+            # Llegar a este punto quiere decir que he terminado de repasar todas las URLS, en cuyo caso volvemos a
+            # inicializar el método con la lista de urls actualizadas
+            cls.sincronizar_productos_from_amazon(urls_productos = urls_productos)
+
+        # Una vez llego a este punto, hemos utilizado todos los proxies disponibles, así que volvemos a
+        # inicializar el método con la lista de urls actualizadas
+        cls.sincronizar_productos_from_amazon(urls_productos=urls_productos)
 
     @classmethod
     # 1.2 - Eliminar aquellos productos de nuestra Base de Datos que no estén en la lista de referencia para sincronizar con Amazon
     def eliminar_productos_excluidos(cls, urls_productos):
+        print('Eliminando Productos de nuestra BD que no estén en la lista de urls...')
         for producto in cls.objects.all():
             if not producto.url_afiliado in urls_productos:
                 producto.eliminar_producto()
+        print('')
 
     @classmethod
     # Descarga en un directorio del servidor todas las imágenes de los Productos en nuestra BD
@@ -338,7 +372,7 @@ class Producto(models.Model):
             app = App.objects.get(api_client = api_client)
             print('Sincronizando productos en: %s' %api_client.nombre)
             urls_amigables = []
-            for producto_dict in Producto.get_productos_as_dict()[:1]:
+            for producto_dict in Producto.get_productos_as_dict():
                 urls_amigables.append(producto_dict.get('url_amigable'))
                 r = app.add_product(producto_dict)
 
@@ -437,10 +471,10 @@ class Producto(models.Model):
         url_imagen_principal, asin, opiniones, evaluacion
     ):
         # Solo creamos el producto si no hay otro con el mismo nombre, en caso ontrario lo modificamos
-        if not cls.objects.filter(nombre = nombre):
+        if not cls.objects.filter(asin = asin):
             n_producto = cls.objects.create(
                 nombre = nombre,
-                nombre_corto = nombre[:83] + '...',
+                nombre_corto = nombre[:90] + '...',
                 url_amigable = slugify(nombre),
                 precio_antes = precio_antes,
                 precio_final = precio_final,
@@ -456,7 +490,7 @@ class Producto(models.Model):
             # n_producto.set_formatos_imagen_principal()
             return n_producto
         else:
-            producto = cls.objects.get(nombre = nombre)
+            producto = cls.objects.get(asin = asin)
             producto.modificar_producto(
                 nombre = nombre,
                 precio_antes = precio_antes,
@@ -518,30 +552,33 @@ class Producto(models.Model):
             Categoria.objects.get(url_amigable = categoria_url_amigable).eliminar_categoria()
 
     @classmethod
-    def sincronizar_producto_from_url(cls, url_producto):
+    def sincronizar_producto_from_url(cls, url_producto, proxy = None):
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
 
         try:
+        # if True:
             # Se realizan hasta 30 intentos de recuperación de información por producto,
             # por si Amazon detecta una y otra vez un acceso automatizado
-            for attempt in range(20):
-                print('Iniciando intento %s de obtención de datos...' %attempt)
+            for attempt in range(30):
                 # Se realiza una petición GET a la url del producto en Amazon
-                response = requests.get(url_producto, headers = headers, verify = False)
-                print('Petición requests realizada...')
+                if proxy:
+                    response = requests.get(url_producto, headers = headers, verify = False, proxies = {'https': 'https://%s' %proxy})
+                else:
+                    response = requests.get(url_producto, headers = headers, verify = False)
+
                 # Si el código recibido es 200, la conexión ha sido exitosa y se procede con el parseo de información
                 if response.status_code == 200:
-                    print('Hemos recibido un código 200 de parte de Amazon, procedemos a intentar obtener la información del producto')
                     try:
+                    # if True:
                         # Se obtiene el código HTML de la respuesta del servidor de Amazon
                         html = response.text
 
                         # Una vez tenemos el código HTML, se comprueba si contiene la información deseada, o Amazon ha
                         # detectado nuestro acceso automatizado
                         if 'For automated access to price change or offer listing change events' in html:
-                            w = random.randint(5, 10)
-                            print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en %s segundos...' %w)
-                            time.sleep(w)
+                            # w = random.randint(1, 3)
+                            # print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en %s segundos...' %w)
+                            # time.sleep(w)
                             continue
 
                         # Si hemos superado la prueba anterior y Amazon nos ha devuelto información útil sobre el proyecto,
@@ -597,9 +634,6 @@ class Producto(models.Model):
 
                         # 5 - ASIN
                         asin = methods.parse_asin(html)
-                        if Producto.objects.filter(asin = asin):
-                            print('El Producto con URL: "%s" ya existe en nuestra BD con la URL: "%s"' %(url_producto, Producto.objects.get(asin = asin).url_afiliado))
-                            return 'success'
 
                         # 6 - Cantidad de opiniones
                         opiniones = methods.parse_opiniones(html)
@@ -644,9 +678,8 @@ class Producto(models.Model):
                 else:
                     print('Hemos obtenido un código %s por parte de Amazon, es imposible procesar la petición' %response.status_code)
 
-            if attempt == 19:
-                return 'detectado'
             # Se llega aqui solo luego de 20 intentos fallidos de acceso, si Amazon detecta el acceso automático
+            return 'detectado'
 
 
         except Exception as e:
@@ -654,6 +687,104 @@ class Producto(models.Model):
             print(e)
             print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
             return 'fail'
+
+    @classmethod
+    def sincronizar_producto_from_url_debug(cls, url_producto):
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
+        if True:
+            for attempt in range(30):
+                response = requests.get(url_producto, headers=headers, verify=False)
+                if response.status_code == 200:
+                    if True:
+                        # Se obtiene el código HTML de la respuesta del servidor de Amazon
+                        html = response.text
+
+                        # Una vez tenemos el código HTML, se comprueba si contiene la información deseada, o Amazon ha
+                        # detectado nuestro acceso automatizado
+                        if 'For automated access to price change or offer listing change events' in html:
+                            # w = random.randint(1, 3)
+                            # print('Amazon ha detectado un acceso automático, lo intentaremos de nuevo en %s segundos...' %w)
+                            # time.sleep(w)
+                            continue
+
+                        # Si hemos superado la prueba anterior y Amazon nos ha devuelto información útil sobre el proyecto,
+                        # entonces extraemos la información del mismo. Esta consta de:
+                        # 1 - URL de la imagen principal:
+                        url_imagen_principal = methods.parse_url_imagen_principal(html)
+                        # Siempre al final de cada parámetro del producto, comprobamos si hemos obtenido correctamente la información
+                        if not url_imagen_principal:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            return 'fail'
+
+                        # 2 - Precio:
+                        detalles_precio = methods.parser_precio(html)
+                        precio_antes = detalles_precio['precio_antes']
+                        precio_final = detalles_precio['precio_final']
+                        ahorro_euros = detalles_precio['ahorro_euros']
+                        ahorro_porciento = detalles_precio['ahorro_porciento']
+                        # El precio_final es requisito para que se considere correcta la información obtenida
+                        if not precio_final:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            return 'fail'
+
+                        # 3 - Nombre:
+                        nombre = methods.parse_nombre(html)
+                        if not nombre:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            return 'fail'
+
+                        # 4 - Categoría:
+                        categoria_name = methods.parse_categoria(html)
+                        # Definimos algunas reglas para modificar posibles nombres de categorías:
+                        # 4.1 - Hogar --> Hogar y cocina
+                        if categoria_name == 'Hogar':
+                            categoria_name = 'Hogar y cocina'
+                        # 4.2 - Videojuegos --> Juguetes y juegos
+                        if categoria_name == 'Videojuegos':
+                            categoria_name = 'Juguetes y juegos'
+                        # 4.3 - Bebé --> Juguetes y juegos
+                        if categoria_name == 'Bebé':
+                            categoria_name = 'Juguetes y juegos'
+                        # 4.4 - Informática --> Electrónica e Informática
+                        if categoria_name == 'Informática' or categoria_name == 'Electrónica':
+                            categoria_name = 'Electrónica e Informática'
+                        # 4.5 - Salud y cuidado personal --> Belleza
+                        if categoria_name == 'Salud y cuidado personal':
+                            categoria_name = 'Belleza'
+
+                        if categoria_name:
+                            categoria = Categoria.get_categoria_from_name(categoria_name)
+                        else:
+                            print('Ha habido un fallo en el parseo de datos, abandonamos el  producto')
+                            return 'fail'
+
+                        # 5 - ASIN
+                        asin = methods.parse_asin(html)
+                        if Producto.objects.filter(asin=asin):
+                            print('El Producto con URL: "%s" ya existe en nuestra BD con la URL: "%s"' % (
+                            url_producto, Producto.objects.get(asin=asin).url_afiliado))
+                            return 'success'
+
+                        # 6 - Cantidad de opiniones
+                        opiniones = methods.parse_opiniones(html)
+
+                        # 7 - Evaluación promedio
+                        evaluacion = methods.parse_evaluacion(html)
+
+                        # Si logramos crear el producto, salimos del for de intentos
+                        return 'success'
+
+                elif response.status_code == 404:
+                    print('Amazon ha respondido un código 404, abandonamos el  producto')
+                    return 'not_found'
+                elif response.status_code == 503:
+                    print('Amazon ha baneado nuestra IP. Hay que esperar e intentarlo otro día')
+                    return 'banned'
+                else:
+                    print('Hemos obtenido un código %s por parte de Amazon, es imposible procesar la petición' % response.status_code)
+
+            # Se llega aqui solo luego de 20 intentos fallidos de acceso, si Amazon detecta el acceso automático
+            return 'detectado'
 
     # Declaración del object manager
     objects = Producto_Manager()
