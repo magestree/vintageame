@@ -23,8 +23,8 @@ def categoria(request, url_amigable):
     categoria = categorias.filter(url_amigable = url_amigable).first()
     if not categoria:
         raise Http404
-    order_by = '-ahorro_porciento' # Se define el criterio de ordenación de productos por defecto
-    productos = categoria.producto_set.order_by(order_by, '-opiniones', '-evaluacion', 'precio_final')
+    order_by = '-opiniones' # Se define el criterio de ordenación de productos por defecto
+    productos = categoria.producto_set.order_by(order_by, '-opiniones', '-evaluacion')
     productos_keywords = productos[:5]
 
     if request.method == 'POST':
@@ -46,7 +46,7 @@ def categoria(request, url_amigable):
         elif 'order_by' in request.POST:
             precio_maximo = request.POST.get('precio_maximo')
             precio_minimo = request.POST.get('precio_minimo')
-            productos = productos.filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo).order_by(order_by)
+            productos = productos.filter(precio_final__gte = precio_minimo, precio_final__lte = precio_maximo).order_by(order_by, '-opiniones', '-evaluacion')
 
     else:
         # Si no se realiza un filtrado de precios, entonces se resetean los valores del input de precios del formulario
