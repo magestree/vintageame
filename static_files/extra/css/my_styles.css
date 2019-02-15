@@ -106,3 +106,7 @@ input.newsletter {
 a.button.color:hover {
     background-color: #C59659;
 }
+
+.rating .star-bg::after, .rating .star-rating::after {
+    letter-spacing: 1px;
+}

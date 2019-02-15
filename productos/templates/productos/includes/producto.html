@@ -22,13 +22,11 @@
                     <span class="product-price" style="font-size: large; color: #0A2D42">€{{ producto.precio_final }}</span>
                 {% endif %}
                 {% if producto.evaluacion %}
-                    <div class="reviews-counter" style="background-color:rgba(0, 0, 0, 0.5)">
-                        <div class="rating {{ producto.evaluacion_int }}-stars">
-                            <div class="star-rating"></div>
-                            <div class="star-bg"></div>
-                        </div>
-                        <span>{{ producto.opiniones }} Opiniones</span>
+                    <div class="rating {{ producto.evaluacion_int }}-stars centered">
+                        <div class="star-rating"></div>
+                        <div class="star-bg"></div>
                     </div>
+                    <span>{{ producto.opiniones }} Opiniones</span>
                 {% endif %}
             </section>
         </a>
