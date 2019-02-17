@@ -9,7 +9,8 @@
 {% block content %}
     {% include 'website/includes/title_bar.html' with page_title='Productos Vintage' %}<br>
     <div class="container">
-        {% include 'website/includes/page_description_header.html' with text='¡¡¡Bienvenido a nuestra tienda online de productos vintage!!! Un sitio de encuentro para los amantes de lo clásico y el deleite por lo que nunca pasará de moda. Tu oportunidad para apreciar lo retro, amar lo antiguo y retornar al pasado. Nuestros artículos vintage esperan formar parte de tu vida, no pierdas tiempo y encuentra entre ellos ese que tanto has buscado…' %}<br>
+{#        {% include 'website/includes/page_description_header.html' with text='¡¡¡Bienvenido a nuestra tienda online de productos vintage!!! Un sitio de encuentro para los amantes de lo clásico y el deleite por lo que nunca pasará de moda. Tu oportunidad para apreciar lo retro, amar lo antiguo y retornar al pasado. Nuestros artículos vintage esperan formar parte de tu vida, no pierdas tiempo y encuentra entre ellos ese que tanto has buscado…' %}<br>#}
+        {% include 'website/includes/page_description_header.html' with text='¡Bienvenido a nuestra tienda online de productos vintage!' %}<br>
         <h2 class = 'font-vintage justify' style="text-align: center"><u>Categorías</u></h2><br>
         <div id="portfolio-wrapper">
             {% for categoria in categorias %}
@@ -19,6 +20,7 @@
     </div>
     <div class="container">
         <h3 class = 'font-vintage justify'>
+            Este es un sitio de encuentro para los amantes de lo clásico y el deleite por lo que nunca pasará de moda. Tu oportunidad para apreciar lo retro, amar lo antiguo y retornar al pasado. Nuestros artículos vintage esperan formar parte de tu vida, no pierdas tiempo y encuentra entre ellos ese que tanto has buscado…<br>
             ¿Por qué comprar en Vintangeame?<br>
             Para tu suerte, nuestra tienda además de estar diseñada para todos los gustos, también cuenta con stock debidamente actualizado y ordenado. A través de las categorías podrás navegar entre lo mejor en productos vintage y disfrutar de increíbles descuentos.<br>
             ¿Quieres más motivos?<br>

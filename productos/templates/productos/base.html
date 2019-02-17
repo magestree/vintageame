@@ -10,20 +10,15 @@
 {% block content %}
     {% block page_title %}{% endblock page_title %}<br>
     <div class="container">
-        {% if categoria.descripcion %}
-            {% include 'website/includes/page_description_header.html' with text=categoria.descripcion %}<br>
+        {% if categoria.descripcion_breve %}
+            {% include 'website/includes/page_description_header.html' with text=categoria.descripcion_breve %}<br>
         {% endif %}
-{#        <div class="two columns">#}
-{#        <div class="four columns">#}
-{#            {% include 'website/includes/sidebar/categories.html' %}#}
-{#            {% include 'website/includes/sidebar/price_filter.html' %}#}
-{#        </div>#}
         {% block productos %}{% endblock productos %}
     </div>
     <div class="container margin-bottom-20">
         <div class="sixteen columns">
-            {% if categoria.texto_seo %}
-                <h3 class = 'font-vintage justify' style="text-indent: 40px;">{{ categoria.texto_seo }}</h3>
+            {% if categoria.descripcion %}
+                <h3 class = 'font-vintage justify' style="text-indent: 40px;">{{ categoria.descripcion }}</h3>
             {% endif %}
         </div>
     </div>
@@ -38,11 +33,15 @@
             </div>
             <br>
             <a href = '{% url 'website:index' %}' class = 'button color text-center centered'>Ver todas las categorías de productos vintage</a>
+
+            <br>
+            {% if categoria.texto_seo %}
+                <h3 class = 'font-vintage justify' style="text-indent: 40px;">{{ categoria.texto_seo }}</h3>
+            {% endif %}
         </div>
     </div>
-{% endblock content %}
-{% block fbpixel %}
-    fbq('track', 'ViewContent');
+{% endblock content %}{% block fbpixel %}
+            fbq('track', 'ViewContent', {content_name: "{{ categoria.url_amigable }}"});
 {% endblock fbpixel %}
 {% block custom_js %}
     <script src="{% static 'extra/scripts/categoria.js' %}"></script>

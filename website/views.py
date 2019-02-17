@@ -16,6 +16,15 @@ def index(request):
     context.update(global_data(request))
     return render(request, 'website/index.html', context)
 
+def aviso_legal(request):
+    return render(request, 'website/aviso_legal.html')
+
+def politica_privacidad(request):
+    return render(request, 'website/politica_privacidad.html')
+
+def politica_cookies(request):
+    return render(request, 'website/politica_cookies.html')
+
 def handler400(request, exception):
     return render(request, 'website/400.html', locals())
 
