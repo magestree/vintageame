@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from django.http import Http404
-from django.db.models import Count
+from django.db.models import Count, Q
 from productos.models import Producto, Categoria
 from support.globals import GOOGLE_SITE_VERIFICATION, ENTORNO, GOOGLE_ANALYTICS, GOOGLE_ADSENSE, FB_PIXEL_ID, HOTJAR_ID
 from decimal import Decimal
@@ -19,10 +19,15 @@ def global_data(request):
 
 def categoria(request, url_amigable):
     categorias = Categoria.objects.prefetch_related('producto_set').annotate(count = Count('producto')).order_by('-count')
-    categorias_footer = categorias[:5]
+
+    # Se determina la categoría a mostrar o en caso contrario devolvemos 404
     categoria = categorias.filter(url_amigable = url_amigable).first()
     if not categoria:
         raise Http404
+
+    # Seleccionamos las primeras 5 categorías, excluyendo la actual si se encuentra entre estas
+    categorias_footer = categorias.filter(~Q(url_amigable = url_amigable))[:5]
+
     order_by = '-opiniones' # Se define el criterio de ordenación de productos por defecto
     productos = categoria.producto_set.order_by(order_by, '-opiniones', '-evaluacion')
     productos_keywords = productos[:5]

@@ -102,7 +102,7 @@ categorias = [
     },
     {
         'nombre': 'Productos para mascotas',
-        'descripcion': 'Dicen que nuestras mascotas suelen parecerse a nosotros. Si eres parte de esta hermosa familia del vintage y tienes mascota, probablemente no te lo diga, pero le molarán estos productos tanto como a ti. ',
+        'descripcion': 'Dicen que nuestras mascotas suelen parecerse a nosotros. Si eres parte de esta hermosa familia del vintage y tienes mascota, probablemente no te lo diga, pero le molarán estos productos tanto como a ti.',
         'texto_seo': '',
         'descripcion_breve': '',
     },

@@ -1,21 +1,16 @@
 {% load staticfiles %}
-<div class="four columns portfolio-item" onClick="fbq('track', 'Lead');">
-{#<div class="five columns portfolio-item" onClick="fbq('track', 'Lead');">#}
-{#<div class="one-third column portfolio-item" onClick="alert('probando');">#}
+<div class="four columns portfolio-item" onClick="fbq('track', 'Lead', {content_category: '{{ producto.categoria.nombre }}', content_name: '{{ producto.url_amigable }}' });">
     <figure>
         <div class="portfolio-holder dynamic-portfolio-holder">
             <a href="{{ producto.url_afiliado }}" target="_blank">
 {#                <img class="lozad" src="{% static 'extra/images/background_default.png' %}" data-src = "{{ producto.url_imagen_principal }}" alt = '{{ producto.nombre }}'/>#}
                 <img src = "{{ producto.url_imagen_principal }}" title = '{{ producto.nombre }}' alt = '{{ producto.nombre }}'/>
                 <div class="hover-cover"></div>
-{#                <div class="hover-icon"></div>#}
             </a>
         </div>
         <a href="{{ producto.url_afiliado }}" target="_blank">
             <section class="item-description">
-                <span>{{ producto.nombre }}</span>
-                <br>
-                <br>
+                <span>{{ producto.nombre }}</span><br><br>
                 {% if producto.ahorro_porciento %}
                     <span class="product-price-discount" style="font-size: large; color: #0A2D42">€{{ producto.precio_antes }}<i>€{{ producto.precio_final }}</i></span>
                 {% else %}

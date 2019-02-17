@@ -20,6 +20,7 @@ def add_categoria(request):
 
         content = json.loads(request.body)
         nombre = content.get('nombre')
+        descripcion_breve = content.get('descripcion_breve')
         descripcion = content.get('descripcion')
         texto_seo = content.get('texto_seo')
 
@@ -27,6 +28,7 @@ def add_categoria(request):
         if categoria:
             categoria.modificar_categoria(
                 nombre = nombre,
+                descripcion_breve = descripcion_breve,
                 descripcion = descripcion,
                 texto_seo = texto_seo,
             )
@@ -35,6 +37,7 @@ def add_categoria(request):
         else:
             n_categoria = Categoria.nueva_categoria(
                 nombre = nombre,
+                descripcion_breve = descripcion_breve,
                 descripcion = descripcion,
                 texto_seo = texto_seo,
             )
@@ -78,6 +81,7 @@ def add_producto(request):
             existent_categoria = Categoria.objects.get(url_amigable = categoria.get('url_amigable'))
             existent_categoria.modificar_categoria(
                 nombre = categoria.get('nombre'),
+                descripcion_breve = categoria.get('descripcion_breve'),
                 descripcion = categoria.get('descripcion'),
                 texto_seo = categoria.get('texto_seo'),
             )
@@ -86,6 +90,7 @@ def add_producto(request):
             # Si no existe la categoría, entonces se crea
             categoria = Categoria.nueva_categoria(
                 nombre = categoria.get('nombre'),
+                descripcion_breve = categoria.get('descripcion_breve'),
                 descripcion = categoria.get('descripcion'),
                 texto_seo = categoria.get('texto_seo'),
             )
